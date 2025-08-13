@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnalyzedNews } from '@/lib/types';
+import { formatDate, getScoreColor } from '@/lib/utils';
 
 export default function Home() {
   const [news, setNews] = useState<AnalyzedNews[]>([]);
@@ -24,25 +25,28 @@ export default function Home() {
   ];
 
   const fetchNews = useCallback(async (forceRefresh = false) => {
+    setLoading(true);
+    setError('');
+    
     try {
-      setLoading(true);
-      setError('');
-      const refreshParam = forceRefresh ? '&refresh=true' : '';
-      const response = await fetch(`/api/news?category=${category}&limit=20${refreshParam}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setNews(result.data);
-        setIsDummyData(result.source === 'dummy');
-        setIsCached(result.source === 'cache');
-        setCacheInfo(result.cacheInfo);
-        if (result.error) {
-          setError(result.error);
-        }
+      const params = new URLSearchParams({
+        category: category,
+        limit: '300', // 267개 뉴스를 모두 가져오기 위해 300으로 설정
+        ...(forceRefresh && { forceRefresh: 'true' })
+      });
+
+      const response = await fetch(`/api/news?${params}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setNews(data.data);
+        setIsDummyData(data.isDummyData || false);
+        setIsCached(data.isCached || false);
+        setCacheInfo(data.cacheInfo || null);
       } else {
-        setError(result.error);
+        setError(data.error || '뉴스를 불러오는 중 오류가 발생했습니다.');
       }
-    } catch {
+    } catch (err) {
       setError('뉴스를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -53,20 +57,22 @@ export default function Home() {
     fetchNews();
   }, [fetchNews]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 8) return 'text-red-500';
-    if (score >= 6) return 'text-orange-500';
-    return 'text-yellow-500';
+  // HTML을 안전하게 렌더링하는 컴포넌트
+  const SafeHtml = ({ html, className }: { html: string; className?: string }) => {
+    if (!html) return null;
+    
+    return (
+      <div 
+        className={className}
+        dangerouslySetInnerHTML={{ 
+          __html: html
+            .replace(/<script[^>]*>.*?<\/script>/gi, '') // script 태그 제거
+            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '') // iframe 태그 제거
+            .replace(/javascript:/gi, '') // javascript: 프로토콜 제거
+            .replace(/on\w+\s*=/gi, '') // 이벤트 핸들러 제거
+        }} 
+      />
+    );
   };
 
   return (
@@ -84,6 +90,12 @@ export default function Home() {
               </p>
             </div>
             <div className="flex space-x-2">
+              <a
+                href="/admin"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
+              >
+                📊 관리자
+              </a>
               <button
                 onClick={() => fetchNews(true)}
                 disabled={loading}
@@ -178,13 +190,15 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <h2 className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2">
-                    {item.title}
-                  </h2>
+                  <SafeHtml 
+                    html={item.title}
+                    className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2"
+                  />
                   
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
-                    {item.description}
-                  </p>
+                  <SafeHtml 
+                    html={item.description}
+                    className="text-gray-600 text-sm mb-4 line-clamp-3 prose prose-sm"
+                  />
                   
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gray-400">

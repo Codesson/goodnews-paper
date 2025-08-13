@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* line-clamp 유틸리티 */
 @layer utilities {
   .line-clamp-2 {
     display: -webkit-box;
@@ -15,6 +16,61 @@
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+}
+
+/* prose 스타일 (HTML 콘텐츠용) */
+@layer components {
+  .prose {
+    @apply text-gray-600;
+  }
+  
+  .prose p {
+    @apply mb-2;
+  }
+  
+  .prose strong, .prose b {
+    @apply font-semibold text-gray-900;
+  }
+  
+  .prose em, .prose i {
+    @apply italic;
+  }
+  
+  .prose u {
+    @apply underline;
+  }
+  
+  .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    @apply font-semibold text-gray-900 mb-2;
+  }
+  
+  .prose h1 {
+    @apply text-xl;
+  }
+  
+  .prose h2 {
+    @apply text-lg;
+  }
+  
+  .prose h3 {
+    @apply text-base;
+  }
+  
+  .prose br {
+    @apply block;
+  }
+  
+  .prose-sm {
+    @apply text-sm;
+  }
+  
+  .prose-sm p {
+    @apply mb-1;
+  }
+  
+  .prose-sm h1, .prose-sm h2, .prose-sm h3, .prose-sm h4, .prose-sm h5, .prose-sm h6 {
+    @apply mb-1;
   }
 }
 

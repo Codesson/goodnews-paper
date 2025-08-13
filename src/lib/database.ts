@@ -74,27 +74,64 @@ export async function saveNews(newsItems: AnalyzedNews[]): Promise<void> {
   }
 }
 
-// 감동적인 뉴스 조회
-export async function getInspiringNews(category?: string, limit: number = 20): Promise<AnalyzedNews[]> {
+// 모든 뉴스 조회 (감동적인 뉴스 필터링 제거)
+export async function getAllNews(category?: string, limit: number = 20): Promise<AnalyzedNews[]> {
   try {
     let result;
-    
+
     if (category && category !== 'all') {
       result = await sql`
-        SELECT * FROM news 
-        WHERE is_inspiring = true AND category = ${category}
-        ORDER BY score DESC, pub_date DESC 
+        SELECT * FROM news
+        WHERE category = ${category}
+        ORDER BY pub_date DESC
         LIMIT ${limit}
       `;
     } else {
       result = await sql`
-        SELECT * FROM news 
-        WHERE is_inspiring = true
-        ORDER BY score DESC, pub_date DESC 
+        SELECT * FROM news
+        ORDER BY pub_date DESC
         LIMIT ${limit}
       `;
     }
-    
+
+    return result.rows.map((row: any) => ({
+      title: row.title,
+      description: row.description,
+      link: row.link,
+      pubDate: row.pub_date,
+      source: row.source,
+      category: row.category,
+      isInspiring: row.is_inspiring,
+      score: row.score,
+      reason: row.reason
+    }));
+  } catch (error) {
+    console.error('뉴스 조회 오류:', error);
+    return [];
+  }
+}
+
+// 감동적인 뉴스 조회 (기존 함수 유지)
+export async function getInspiringNews(category?: string, limit: number = 20): Promise<AnalyzedNews[]> {
+  try {
+    let result;
+
+    if (category && category !== 'all') {
+      result = await sql`
+        SELECT * FROM news
+        WHERE is_inspiring = true AND category = ${category}
+        ORDER BY score DESC, pub_date DESC
+        LIMIT ${limit}
+      `;
+    } else {
+      result = await sql`
+        SELECT * FROM news
+        WHERE is_inspiring = true
+        ORDER BY score DESC, pub_date DESC
+        LIMIT ${limit}
+      `;
+    }
+
     return result.rows.map((row: any) => ({
       title: row.title,
       description: row.description,
@@ -130,7 +167,7 @@ export async function getDatabaseStats() {
     const totalNews = await sql`SELECT COUNT(*) as total FROM news`;
     const inspiringNews = await sql`SELECT COUNT(*) as inspiring FROM news WHERE is_inspiring = true`;
     const recentNews = await sql`SELECT COUNT(*) as recent FROM news WHERE created_at > NOW() - INTERVAL '24 hours'`;
-    
+
     return {
       total: totalNews.rows[0].total,
       inspiring: inspiringNews.rows[0].inspiring,

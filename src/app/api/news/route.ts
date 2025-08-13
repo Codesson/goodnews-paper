@@ -1,133 +1,143 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { fetchAllNews } from '@/lib/rss';
-import { fetchNewsFromRSSProxy } from '@/lib/news-api';
-import { filterInspiringNews } from '@/lib/analyzer';
+import { analyzeNews, filterInspiringNews } from '@/lib/analyzer';
+import { getAllNews } from '@/lib/database';
+import { newsCache } from '@/lib/cache';
 import { DUMMY_NEWS } from '@/lib/dummy-data';
-import { newsCache, generateCacheKey } from '@/lib/cache';
-import { getInspiringNews, saveNews, saveCollectionLog } from '@/lib/database';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const searchParams = request.nextUrl.searchParams;
+    const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || 'all';
     const limit = parseInt(searchParams.get('limit') || '20');
     const forceRefresh = searchParams.get('refresh') === 'true';
-    const useDatabase = searchParams.get('db') === 'true';
-    
-    // 캐시 키 생성
-    const cacheKey = generateCacheKey(category, limit);
-    
-    // 강제 새로고침이 아닌 경우 캐시 확인
+    const useDatabase = searchParams.get('useDatabase') !== 'false';
+
+    console.log(`📰 뉴스 요청: category=${category}, limit=${limit}, refresh=${forceRefresh}`);
+
+    // 1단계: 캐시 확인 (강제 새로고침이 아닌 경우)
     if (!forceRefresh) {
+      const cacheKey = `news_${category}_${limit}`;
       const cachedData = newsCache.get(cacheKey);
+      
       if (cachedData) {
-        console.log(`캐시에서 데이터 반환: ${cacheKey}`);
+        console.log('⚡ 캐시된 데이터 반환');
         return NextResponse.json({
           success: true,
           data: cachedData,
-          total: cachedData.length,
-          category,
           source: 'cache',
-          message: '캐시된 데이터를 반환합니다.'
+          cacheInfo: {
+            cached: true,
+            cacheKey,
+            cacheStatus: newsCache.getStatus()
+          }
         });
       }
     }
-    
-    // 데이터베이스에서 조회 시도
+
+    // 2단계: 데이터베이스에서 조회 (useDatabase가 true인 경우)
     if (useDatabase) {
       try {
-        const dbNews = await getInspiringNews(category, limit);
+        console.log('🗄️ 데이터베이스에서 뉴스 조회 중...');
+        const dbNews = await getAllNews(category === 'all' ? undefined : category, limit);
+        
         if (dbNews.length > 0) {
-          console.log(`데이터베이스에서 ${dbNews.length}개 뉴스 조회`);
+          console.log(`✅ 데이터베이스에서 ${dbNews.length}개 뉴스 조회 성공`);
+          
+          // 캐시에 저장
+          const cacheKey = `news_${category}_${limit}`;
+          newsCache.set(cacheKey, dbNews);
+          
           return NextResponse.json({
             success: true,
             data: dbNews,
-            total: dbNews.length,
-            category,
             source: 'database',
-            message: '데이터베이스에서 뉴스를 조회했습니다.'
+            cacheInfo: {
+              cached: false,
+              cacheKey,
+              cacheStatus: newsCache.getStatus()
+            }
           });
         }
       } catch (dbError) {
-        console.error('데이터베이스 조회 오류:', dbError);
+        console.warn('⚠️ 데이터베이스 조회 실패, RSS 피드로 폴백:', dbError);
       }
     }
-    
-    console.log(`캐시 미스, 새로운 데이터 수집: ${cacheKey}`);
-    
-    // 1. RSS 피드에서 뉴스 수집 시도
-    let allNews = await fetchAllNews();
-    
-    // 2. RSS 피드가 실패한 경우 RSS 프록시 시도
-    if (allNews.length === 0) {
-      console.log('RSS 피드 실패, RSS 프록시 시도');
-      allNews = await fetchNewsFromRSSProxy();
+
+    // 3단계: RSS 피드에서 실시간 수집
+    try {
+      console.log('📡 RSS 피드에서 뉴스 수집 중...');
+      const allNews = await fetchAllNews();
+      
+      if (allNews.length > 0) {
+        console.log(`📊 RSS에서 ${allNews.length}개 뉴스 수집 완료`);
+        
+        // 뉴스 분석
+        const analyzedNews = allNews.map(news => analyzeNews(news));
+        
+        // 카테고리 필터링
+        let filteredNews = analyzedNews;
+        if (category !== 'all') {
+          filteredNews = analyzedNews.filter(news => news.category === category);
+        }
+        
+        // 제한된 수만큼 반환
+        const limitedNews = filteredNews.slice(0, limit);
+        
+        // 캐시에 저장
+        const cacheKey = `news_${category}_${limit}`;
+        newsCache.set(cacheKey, limitedNews);
+        
+        console.log(`✅ RSS 피드에서 ${limitedNews.length}개 뉴스 반환`);
+        
+        return NextResponse.json({
+          success: true,
+          data: limitedNews,
+          source: 'rss',
+          cacheInfo: {
+            cached: false,
+            cacheKey,
+            cacheStatus: newsCache.getStatus()
+          }
+        });
+      }
+    } catch (rssError) {
+      console.warn('⚠️ RSS 피드 수집 실패, 더미 데이터로 폴백:', rssError);
     }
+
+    // 4단계: 더미 데이터 반환
+    console.log('🎭 더미 데이터 반환');
+    let dummyData = DUMMY_NEWS;
     
-    // 3. 모든 방법이 실패한 경우 더미 데이터 사용
-    if (allNews.length === 0) {
-      console.log('모든 뉴스 소스 실패, 더미 데이터 사용');
-      allNews = DUMMY_NEWS;
-    }
-    
-    // 감동적인 뉴스만 필터링
-    const inspiringNews = filterInspiringNews(allNews);
-    
-    // 카테고리 필터링
-    let filteredNews = inspiringNews;
     if (category !== 'all') {
-      filteredNews = inspiringNews.filter(news => news.category === category);
+      dummyData = DUMMY_NEWS.filter(news => news.category === category);
     }
     
-    // 개수 제한
-    const limitedNews = filteredNews.slice(0, limit);
-    
-    // 데이터베이스에 저장 (더미 데이터가 아닌 경우에만)
-    if (allNews !== DUMMY_NEWS && limitedNews.length > 0) {
-      try {
-        await saveNews(limitedNews);
-        await saveCollectionLog('rss', 'success', limitedNews.length);
-        console.log('데이터베이스에 뉴스 저장 완료');
-      } catch (dbError) {
-        console.error('데이터베이스 저장 오류:', dbError);
-        await saveCollectionLog('rss', 'error', 0, dbError instanceof Error ? dbError.message : 'Unknown error');
-      }
-    }
-    
-    // 캐시에 저장 (더미 데이터가 아닌 경우에만)
-    if (allNews !== DUMMY_NEWS && limitedNews.length > 0) {
-      newsCache.set(cacheKey, limitedNews);
-      console.log(`캐시에 데이터 저장: ${cacheKey}`);
-    }
+    const limitedDummyData = dummyData.slice(0, limit);
     
     return NextResponse.json({
       success: true,
-      data: limitedNews,
-      total: filteredNews.length,
-      category,
-      source: allNews === DUMMY_NEWS ? 'dummy' : 'rss',
-      message: allNews.length > 0 ? '실시간 뉴스 데이터를 성공적으로 수집했습니다.' : '더미 데이터를 사용하고 있습니다.',
+      data: limitedDummyData,
+      source: 'dummy',
+      error: 'RSS 피드 연결에 실패했습니다. 테스트용 데이터를 표시합니다.',
       cacheInfo: {
-        cached: !forceRefresh && newsCache.get(cacheKey) !== null,
-        cacheKey,
+        cached: false,
+        cacheKey: null,
         cacheStatus: newsCache.getStatus()
       }
     });
-    
+
   } catch (error) {
-    console.error('뉴스 API 오류:', error);
+    console.error('❌ 뉴스 API 오류:', error);
     
-    // 에러 발생 시에도 더미 데이터 제공
-    const inspiringNews = filterInspiringNews(DUMMY_NEWS);
-    const limitedNews = inspiringNews.slice(0, 20);
-    
-    return NextResponse.json({
-      success: true,
-      data: limitedNews,
-      total: inspiringNews.length,
-      category: 'all',
-      source: 'dummy',
-      error: '뉴스 수집 중 오류가 발생하여 더미 데이터를 제공합니다.'
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        error: '뉴스를 불러오는 중 오류가 발생했습니다.',
+        data: [],
+        source: 'error'
+      },
+      { status: 500 }
+    );
   }
 } 
