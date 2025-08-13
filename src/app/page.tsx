@@ -12,6 +12,9 @@ export default function Home() {
   const [isDummyData, setIsDummyData] = useState(false);
   const [isCached, setIsCached] = useState(false);
   const [cacheInfo, setCacheInfo] = useState<any>(null);
+  const [popupUrl, setPopupUrl] = useState<string | null>(null);
+  const [popupTitle, setPopupTitle] = useState<string>('');
+  const [iframeLoading, setIframeLoading] = useState(false);
 
   const categories = [
     { id: 'all', name: '전체' },
@@ -56,6 +59,43 @@ export default function Home() {
   useEffect(() => {
     fetchNews();
   }, [fetchNews]);
+
+  // ESC 키로 팝업 닫기
+  useEffect(() => {
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && popupUrl) {
+        closePopup();
+      }
+    };
+
+    if (popupUrl) {
+      document.addEventListener('keydown', handleEscKey);
+      // 팝업이 열려있을 때 body 스크롤 방지
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+      document.body.style.overflow = 'unset';
+    };
+  }, [popupUrl]);
+
+  // 팝업 열기
+  const openPopup = (url: string, title: string) => {
+    console.log('팝업 열기 시도:', { url, title });
+    setPopupUrl(url);
+    setPopupTitle(title);
+    setIframeLoading(true);
+    console.log('팝업 상태 설정 완료');
+  };
+
+  // 팝업 닫기
+  const closePopup = () => {
+    console.log('팝업 닫기');
+    setPopupUrl(null);
+    setPopupTitle('');
+    setIframeLoading(false);
+  };
 
   // HTML을 안전하게 렌더링하는 컴포넌트
   const SafeHtml = ({ html, className }: { html: string; className?: string }) => {
@@ -204,14 +244,12 @@ export default function Home() {
                     <span className="text-xs text-gray-400">
                       {formatDate(item.pubDate)}
                     </span>
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    <button
+                      onClick={() => openPopup(item.link, item.title)}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
                     >
                       원문 보기 →
-                    </a>
+                    </button>
                   </div>
                 </div>
               </article>
@@ -225,6 +263,137 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* 팝업 모달 */}
+      {popupUrl && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}
+          onClick={closePopup}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              width: '90%',
+              height: '90%',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 헤더 */}
+            <div style={{
+              padding: '15px 20px',
+              borderBottom: '1px solid #e5e7eb',
+              backgroundColor: '#f9fafb',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{ 
+                margin: 0, 
+                fontWeight: 'bold',
+                fontSize: '16px',
+                flex: 1,
+                marginRight: '10px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {popupTitle}
+              </h3>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <a
+                  href={popupUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    padding: '6px 12px',
+                    borderRadius: '4px',
+                    textDecoration: 'none',
+                    fontSize: '14px'
+                  }}
+                >
+                  새 탭에서 열기
+                </a>
+                <button 
+                  onClick={closePopup}
+                  style={{
+                    backgroundColor: '#ef4444',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    width: '32px',
+                    height: '32px',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            {/* iframe 컨테이너 */}
+            <div style={{ flex: 1, position: 'relative' }}>
+              {iframeLoading && (
+                <div style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(255,255,255,0.8)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10
+                }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      border: '3px solid #e5e7eb',
+                      borderTop: '3px solid #3b82f6',
+                      borderRadius: '50%',
+                      animation: 'spin 1s linear infinite',
+                      margin: '0 auto 16px'
+                    }}></div>
+                    <p style={{ color: '#6b7280', margin: 0 }}>뉴스 내용을 불러오는 중입니다...</p>
+                  </div>
+                </div>
+              )}
+              <iframe
+                src={popupUrl}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none'
+                }}
+                title={popupTitle}
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                onLoad={() => setIframeLoading(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
