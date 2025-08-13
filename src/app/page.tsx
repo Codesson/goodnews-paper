@@ -14,6 +14,8 @@ export default function Home() {
 
   const categories = [
     { id: 'all', name: '전체' },
+    { id: '국내', name: '국내' },
+    { id: '국제', name: '국제' },
     { id: '인물', name: '인물' },
     { id: '사회', name: '사회' },
     { id: '환경', name: '환경' },

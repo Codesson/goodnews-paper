@@ -3,19 +3,16 @@ import { NewsItem, RSSFeed } from './types';
 
 // RSS 피드 목록 (실제 작동하는 URL들)
 export const RSS_FEEDS: RSSFeed[] = [
+  // 국내 언론사 (실제 작동하는 것들)
+  {
+    name: '매일경제',
+    url: 'https://www.mk.co.kr/rss/30000001/',
+    category: '국내'
+  },
+  // 국제 언론사 (실제 작동하는 것들)
   {
     name: 'BBC 뉴스',
     url: 'https://feeds.bbci.co.uk/news/rss.xml',
-    category: '국제'
-  },
-  {
-    name: 'Reuters',
-    url: 'https://feeds.reuters.com/reuters/topNews',
-    category: '국제'
-  },
-  {
-    name: 'CNN',
-    url: 'https://rss.cnn.com/rss/edition.rss',
     category: '국제'
   },
   {
@@ -26,6 +23,32 @@ export const RSS_FEEDS: RSSFeed[] = [
   {
     name: 'NPR',
     url: 'https://feeds.npr.org/1001/rss.xml',
+    category: '국제'
+  },
+  {
+    name: '테크크런치',
+    url: 'https://techcrunch.com/feed/',
+    category: '국제'
+  },
+  {
+    name: '더버지',
+    url: 'https://www.theverge.com/rss/index.xml',
+    category: '국제'
+  },
+  {
+    name: '아르스 테크니카',
+    url: 'https://feeds.arstechnica.com/arstechnica/index',
+    category: '국제'
+  },
+  // 긍정적 뉴스 전문 사이트
+  {
+    name: 'Positive News',
+    url: 'https://www.positive.news/feed/',
+    category: '국제'
+  },
+  {
+    name: 'Good News Network',
+    url: 'https://www.goodnewsnetwork.org/feed/',
     category: '국제'
   }
 ];
