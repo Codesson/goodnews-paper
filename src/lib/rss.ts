@@ -30,6 +30,14 @@ export const RSS_FEEDS: RSSFeed[] = [
   }
 ];
 
+// RSS 아이템 타입 정의
+interface RSSItem {
+  title?: string;
+  description?: string;
+  link?: string;
+  pubDate?: string;
+}
+
 // RSS 피드 파싱 (개선된 에러 처리)
 export async function parseRSSFeed(url: string, sourceName: string): Promise<NewsItem[]> {
   try {
@@ -73,7 +81,7 @@ export async function parseRSSFeed(url: string, sourceName: string): Promise<New
         
         try {
           const items = result?.rss?.channel?.item || [];
-          const newsItems: NewsItem[] = Array.isArray(items) ? items.map((item: any) => ({
+          const newsItems: NewsItem[] = Array.isArray(items) ? items.map((item: RSSItem) => ({
             title: item.title || '',
             description: item.description || '',
             link: item.link || '',

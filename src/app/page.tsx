@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AnalyzedNews } from '@/lib/types';
 
 export default function Home() {
@@ -19,11 +19,7 @@ export default function Home() {
     { id: '교육', name: '교육' }
   ];
 
-  useEffect(() => {
-    fetchNews();
-  }, [category]);
-
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -39,12 +35,16 @@ export default function Home() {
       } else {
         setError(result.error);
       }
-    } catch (err) {
+    } catch (error) {
       setError('뉴스를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [category]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('ko-KR', {
