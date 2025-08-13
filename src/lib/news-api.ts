@@ -4,16 +4,38 @@ import { NewsItem } from './types';
 const NEWS_API_KEY = process.env.NEWS_API_KEY || '';
 const NEWS_API_BASE_URL = 'https://newsapi.org/v2';
 
-// 한국 뉴스 소스들
-const KOREAN_NEWS_SOURCES = [
-  'yonhap-news',
-  'kbs',
-  'mbc',
-  'sbs',
-  'chosun',
-  'joongang',
-  'donga'
-];
+// News API 응답 타입 정의
+interface NewsAPIArticle {
+  title?: string;
+  description?: string;
+  url?: string;
+  publishedAt?: string;
+  source?: {
+    name?: string;
+  };
+}
+
+interface NewsAPIResponse {
+  status: string;
+  message?: string;
+  articles?: NewsAPIArticle[];
+}
+
+// RSS 프록시 응답 타입 정의
+interface RSSProxyItem {
+  title?: string;
+  description?: string;
+  link?: string;
+  pubDate?: string;
+}
+
+interface RSSProxyResponse {
+  status: string;
+  items?: RSSProxyItem[];
+  feed?: {
+    title?: string;
+  };
+}
 
 // News API에서 뉴스 가져오기
 export async function fetchNewsFromAPI(): Promise<NewsItem[]> {
@@ -37,13 +59,13 @@ export async function fetchNewsFromAPI(): Promise<NewsItem[]> {
       throw new Error(`News API 오류: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data: NewsAPIResponse = await response.json();
     
     if (data.status !== 'ok') {
       throw new Error(`News API 응답 오류: ${data.message}`);
     }
 
-    return data.articles.map((article: any) => ({
+    return (data.articles || []).map((article: NewsAPIArticle) => ({
       title: article.title || '',
       description: article.description || '',
       link: article.url || '',
@@ -74,10 +96,10 @@ export async function fetchNewsFromRSSProxy(): Promise<NewsItem[]> {
         const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`);
         
         if (response.ok) {
-          const data = await response.json();
+          const data: RSSProxyResponse = await response.json();
           
           if (data.status === 'ok' && data.items) {
-            const newsItems = data.items.map((item: any) => ({
+            const newsItems = data.items.map((item: RSSProxyItem) => ({
               title: item.title || '',
               description: item.description || '',
               link: item.link || '',

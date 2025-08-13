@@ -35,7 +35,7 @@ export default function Home() {
       } else {
         setError(result.error);
       }
-    } catch (error) {
+    } catch {
       setError('뉴스를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
