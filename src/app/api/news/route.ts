@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchAllNews } from '@/lib/rss';
+import { fetchNewsFromRSSProxy } from '@/lib/news-api';
 import { filterInspiringNews } from '@/lib/analyzer';
 import { DUMMY_NEWS } from '@/lib/dummy-data';
 
@@ -9,12 +10,18 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const limit = parseInt(searchParams.get('limit') || '20');
     
-    // RSS 피드에서 뉴스 수집 시도
+    // 1. RSS 피드에서 뉴스 수집 시도
     let allNews = await fetchAllNews();
     
-    // RSS 피드가 실패한 경우 더미 데이터 사용
+    // 2. RSS 피드가 실패한 경우 RSS 프록시 시도
     if (allNews.length === 0) {
-      console.log('RSS 피드 실패, 더미 데이터 사용');
+      console.log('RSS 피드 실패, RSS 프록시 시도');
+      allNews = await fetchNewsFromRSSProxy();
+    }
+    
+    // 3. 모든 방법이 실패한 경우 더미 데이터 사용
+    if (allNews.length === 0) {
+      console.log('모든 뉴스 소스 실패, 더미 데이터 사용');
       allNews = DUMMY_NEWS;
     }
     
@@ -35,7 +42,8 @@ export async function GET(request: NextRequest) {
       data: limitedNews,
       total: filteredNews.length,
       category: category || 'all',
-      source: allNews === DUMMY_NEWS ? 'dummy' : 'rss'
+      source: allNews === DUMMY_NEWS ? 'dummy' : 'rss',
+      message: allNews.length > 0 ? '실시간 뉴스 데이터를 성공적으로 수집했습니다.' : '더미 데이터를 사용하고 있습니다.'
     });
     
   } catch (error) {
@@ -51,7 +59,7 @@ export async function GET(request: NextRequest) {
       total: inspiringNews.length,
       category: 'all',
       source: 'dummy',
-      error: 'RSS 피드 오류로 더미 데이터를 제공합니다.'
+      error: '뉴스 수집 중 오류가 발생하여 더미 데이터를 제공합니다.'
     });
   }
 } 

@@ -1,32 +1,32 @@
 import { parseString } from 'xml2js';
 import { NewsItem, RSSFeed } from './types';
 
-// RSS 피드 목록 (더 안정적인 URL들)
+// RSS 피드 목록 (실제 작동하는 URL들)
 export const RSS_FEEDS: RSSFeed[] = [
   {
-    name: '연합뉴스',
-    url: 'https://www.yonhapnews.co.kr/feed/',
-    category: '종합'
+    name: 'BBC 뉴스',
+    url: 'https://feeds.bbci.co.uk/news/rss.xml',
+    category: '국제'
   },
   {
-    name: 'KBS 뉴스',
-    url: 'https://news.kbs.co.kr/rss/',
-    category: '방송'
+    name: 'Reuters',
+    url: 'https://feeds.reuters.com/reuters/topNews',
+    category: '국제'
   },
   {
-    name: 'MBC 뉴스',
-    url: 'https://imnews.imbc.com/rss/',
-    category: '방송'
+    name: 'CNN',
+    url: 'https://rss.cnn.com/rss/edition.rss',
+    category: '국제'
   },
   {
-    name: '뉴시스',
-    url: 'https://www.newsis.com/rss/',
-    category: '종합'
+    name: 'The Guardian',
+    url: 'https://www.theguardian.com/world/rss',
+    category: '국제'
   },
   {
-    name: 'SBS 뉴스',
-    url: 'https://news.sbs.co.kr/rss/',
-    category: '방송'
+    name: 'NPR',
+    url: 'https://feeds.npr.org/1001/rss.xml',
+    category: '국제'
   }
 ];
 
@@ -43,7 +43,7 @@ export async function parseRSSFeed(url: string, sourceName: string): Promise<New
   try {
     // 타임아웃과 헤더 설정
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10초 타임아웃
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15초 타임아웃
 
     const response = await fetch(url, {
       signal: controller.signal,
