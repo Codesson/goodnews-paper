@@ -9,6 +9,8 @@ export default function Home() {
   const [category, setCategory] = useState('all');
   const [error, setError] = useState('');
   const [isDummyData, setIsDummyData] = useState(false);
+  const [isCached, setIsCached] = useState(false);
+  const [cacheInfo, setCacheInfo] = useState<any>(null);
 
   const categories = [
     { id: 'all', name: '전체' },
@@ -19,16 +21,19 @@ export default function Home() {
     { id: '교육', name: '교육' }
   ];
 
-  const fetchNews = useCallback(async () => {
+  const fetchNews = useCallback(async (forceRefresh = false) => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch(`/api/news?category=${category}&limit=20`);
+      const refreshParam = forceRefresh ? '&refresh=true' : '';
+      const response = await fetch(`/api/news?category=${category}&limit=20${refreshParam}`);
       const result = await response.json();
       
       if (result.success) {
         setNews(result.data);
         setIsDummyData(result.source === 'dummy');
+        setIsCached(result.source === 'cache');
+        setCacheInfo(result.cacheInfo);
         if (result.error) {
           setError(result.error);
         }
@@ -76,13 +81,22 @@ export default function Home() {
                 따뜻하고 희망찬 뉴스만 모아서 전해드립니다
               </p>
             </div>
-            <button
-              onClick={fetchNews}
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-            >
-              {loading ? '새로고침 중...' : '새로고침'}
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => fetchNews(true)}
+                disabled={loading}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                {loading ? '새로고침 중...' : '강제 새로고침'}
+              </button>
+              <button
+                onClick={() => fetchNews(false)}
+                disabled={loading}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+              >
+                {loading ? '로딩 중...' : '새로고침'}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -124,6 +138,15 @@ export default function Home() {
             <div className="flex items-center">
               <span className="mr-2">ℹ️</span>
               <span>현재 테스트용 샘플 뉴스를 보여드리고 있습니다. RSS 피드 연결이 완료되면 실시간 뉴스로 업데이트됩니다.</span>
+            </div>
+          </div>
+        )}
+
+        {isCached && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+            <div className="flex items-center">
+              <span className="mr-2">⚡</span>
+              <span>캐시된 데이터를 빠르게 로드했습니다. 최신 뉴스를 보려면 "강제 새로고침"을 클릭하세요.</span>
             </div>
           </div>
         )}
