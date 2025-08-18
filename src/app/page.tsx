@@ -27,7 +27,7 @@ export default function Home() {
     { id: '교육', name: '교육' }
   ];
 
-  const fetchNews = useCallback(async (forceRefresh = false) => {
+  const fetchNews = useCallback(async () => {
     setLoading(true);
     setError('');
     
@@ -35,7 +35,6 @@ export default function Home() {
       const params = new URLSearchParams({
         category: category,
         limit: '300', // 267개 뉴스를 모두 가져오기 위해 300으로 설정
-        ...(forceRefresh && { forceRefresh: 'true' })
       });
 
       const response = await fetch(`/api/news?${params}`);
@@ -116,153 +115,292 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* 헤더 */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                🌟 감동 뉴스
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans">
+      {/* 간략한 신문 헤더 */}
+      <header className="bg-white shadow-lg border-b-2 border-blue-900">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center py-4">
+            <div className="mb-2">
+              <h1 className="text-5xl md:text-7xl font-light text-blue-900 tracking-wide mb-2">
+                GOOD NEWS PAPER
               </h1>
-              <p className="text-gray-600 mt-1">
-                따뜻하고 희망찬 뉴스만 모아서 전해드립니다
+              <div className="w-24 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-2"></div>
+              <h2 className="text-xl md:text-2xl font-normal text-gray-600 tracking-normal">
+                감동을 전하는 따뜻한 이야기
+              </h2>
+            </div>
+            <div className="border-t border-b border-gray-200 py-2 mb-3">
+              <p className="text-sm text-gray-600 font-medium">
+                따뜻하고 희망찬 뉴스만 모아서 전해드리는 감동 신문
               </p>
             </div>
-            <div className="flex space-x-2">
-              <a
-                href="/admin"
-                className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg"
-              >
-                📊 관리자
-              </a>
-              <button
-                onClick={() => fetchNews(true)}
-                disabled={loading}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-              >
-                {loading ? '새로고침 중...' : '강제 새로고침'}
-              </button>
-              <button
-                onClick={() => fetchNews(false)}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-              >
-                {loading ? '로딩 중...' : '새로고침'}
-              </button>
+            <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 font-normal space-y-1 sm:space-y-0">
+              <span className="flex items-center">
+                <span className="mr-1">📅</span>
+                {new Date().toLocaleDateString('ko-KR', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  weekday: 'long'
+                })}
+              </span>
+              <span className="flex items-center">
+                <span className="mr-1">📰</span>
+                Vol. 1 No. 1
+              </span>
+                             <span className="flex items-center">
+                <span className="mr-1">🌟</span>
+                감동 뉴스 페이퍼
+              </span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* 카테고리 필터 */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex space-x-4 py-4 overflow-x-auto">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                  category === cat.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
+      {/* 간략한 카테고리 선택 */}
+      <div className="bg-gradient-to-r from-blue-900 to-purple-900 shadow-md">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex justify-center py-3">
+            <div className="flex flex-wrap justify-center gap-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setCategory(cat.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-normal transition-all duration-300 transform hover:scale-105 ${
+                    category === cat.id
+                      ? 'bg-white text-blue-900 shadow-md'
+                      : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 메인 콘텐츠 */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* 세련된 알림 메시지들 */}
+      <div className="max-w-7xl mx-auto px-6 py-4">
         {error && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 text-amber-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="mr-2">⚠️</span>
-              <span>{error}</span>
+              <span className="text-2xl mr-3">⚠️</span>
+              <span className="font-normal">{error}</span>
             </div>
           </div>
         )}
 
         {isDummyData && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 text-blue-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="mr-2">ℹ️</span>
-              <span>현재 테스트용 샘플 뉴스를 보여드리고 있습니다. RSS 피드 연결이 완료되면 실시간 뉴스로 업데이트됩니다.</span>
+              <span className="text-2xl mr-3">ℹ️</span>
+              <span className="font-normal">현재 테스트용 샘플 뉴스를 보여드리고 있습니다. RSS 피드 연결이 완료되면 실시간 뉴스로 업데이트됩니다.</span>
             </div>
           </div>
         )}
 
         {isCached && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="mr-2">⚡</span>
-              <span>캐시된 데이터를 빠르게 로드했습니다. 최신 뉴스를 보려면 "강제 새로고침"을 클릭하세요.</span>
+              <span className="text-2xl mr-3">⚡</span>
+              <span className="font-normal">캐시된 데이터를 빠르게 로드했습니다.</span>
             </div>
           </div>
         )}
+      </div>
 
+      {/* 메인 콘텐츠 - 세련된 카드 레이아웃 */}
+      <main className="max-w-7xl mx-auto px-6">
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">감동적인 뉴스를 찾고 있습니다...</p>
+          <div className="text-center py-16">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-900 border-t-transparent"></div>
+            <p className="mt-6 text-xl text-gray-600 font-normal">감동적인 뉴스를 찾고 있습니다...</p>
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {news.map((item, index) => (
-              <article
-                key={`${item.source}-${index}`}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm text-gray-500">{item.source}</span>
-                    <div className="flex items-center space-x-2">
-                      <span className={`text-sm font-semibold ${getScoreColor(item.score)}`}>
-                        ⭐ {item.score}점
-                      </span>
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <SafeHtml 
-                    html={item.title}
-                    className="text-lg font-semibold text-gray-900 mb-3 line-clamp-2"
-                  />
-                  
-                  <SafeHtml 
-                    html={item.description}
-                    className="text-gray-600 text-sm mb-4 line-clamp-3 prose prose-sm"
-                  />
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-400">
-                      {formatDate(item.pubDate)}
-                    </span>
-                    <button
-                      onClick={() => openPopup(item.link, item.title)}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium cursor-pointer"
-                    >
-                      원문 보기 →
-                    </button>
-                  </div>
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
+            {/* 헤드라인 섹션 */}
+            {category === 'all' && news.length > 0 && (
+              <div className="border-b-4 border-gradient-to-r from-blue-600 to-purple-600 pb-8 mb-8">
+                <div className="text-center mb-8">
+                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">TODAY'S HEADLINES</h2>
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
                 </div>
-              </article>
-            ))}
+                
+                {/* 헤드라인 카드 그리드 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {news.slice(0, 8).map((item, index) => (
+                    <article
+                      key={`headline-${item.source}-${index}`}
+                      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
+                      onClick={() => openPopup(item.link, item.title)}
+                    >
+                      <div className="p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
+                          <span className="uppercase tracking-wide">{item.source}</span>
+                          <span className={`${getScoreColor(item.score)}`}>
+                            {item.score}점
+                          </span>
+                        </div>
+                        <SafeHtml 
+                          html={item.title}
+                          className="text-lg font-bold text-gray-900 mb-4 leading-tight line-clamp-3 flex-grow"
+                        />
+                        <SafeHtml 
+                          html={item.description}
+                          className="text-gray-600 text-sm leading-relaxed line-clamp-4 flex-grow"
+                        />
+                        <div className="mt-auto pt-4 border-t border-gray-100">
+                          <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
+                            <span>{formatDate(item.pubDate)}</span>
+                            <span className="text-blue-600 font-medium">
+                              {item.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 카테고리별 섹션 */}
+            {category !== 'all' && news.length > 0 && (
+              <div>
+                <div className="text-center mb-8">
+                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">
+                     {category.toUpperCase()} NEWS
+                   </h2>
+                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
+                </div>
+                
+                {/* 카드 그리드 레이아웃 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {news.map((item, index) => (
+                    <article
+                      key={`${item.source}-${index}`}
+                      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
+                      onClick={() => openPopup(item.link, item.title)}
+                    >
+                      <div className="p-6 h-full flex flex-col">
+                        <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
+                          <span className="uppercase tracking-wide">{item.source}</span>
+                          <span className={`${getScoreColor(item.score)}`}>
+                            {item.score}점
+                          </span>
+                        </div>
+                        <SafeHtml 
+                          html={item.title}
+                          className="text-lg font-bold text-gray-900 mb-4 leading-tight line-clamp-3 flex-grow"
+                        />
+                        <SafeHtml 
+                          html={item.description}
+                          className="text-gray-600 text-sm leading-relaxed line-clamp-4 flex-grow"
+                        />
+                        <div className="mt-auto pt-4 border-t border-gray-100">
+                          <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
+                            <span>{formatDate(item.pubDate)}</span>
+                            <span className="text-blue-600 font-medium">
+                              {item.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 카테고리별 그룹화된 섹션 (전체 보기일 때) */}
+            {category === 'all' && news.length > 0 && (
+              <div>
+                {/* 뉴스를 카테고리별로 그룹화 */}
+                {(() => {
+                  const groupedNews = news.slice(4).reduce((acc, item) => {
+                    if (!acc[item.category]) {
+                      acc[item.category] = [];
+                    }
+                    acc[item.category].push(item);
+                    return acc;
+                  }, {} as Record<string, AnalyzedNews[]>);
+
+                  return Object.entries(groupedNews).map(([cat, catNews]) => (
+                    <div key={cat} className="mb-12">
+                      <div className="text-center mb-8">
+                                                 <h3 className="text-3xl md:text-4xl font-light text-blue-900 mb-4">
+                           {cat.toUpperCase()} SECTION
+                         </h3>
+                        <div className="w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
+                      </div>
+                      
+                      {/* 카드 그리드 레이아웃 */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {catNews.slice(0, 8).map((item, index) => (
+                          <article
+                            key={`${cat}-${item.source}-${index}`}
+                            className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
+                            onClick={() => openPopup(item.link, item.title)}
+                          >
+                            <div className="p-4 h-full flex flex-col">
+                              <div className="flex items-center justify-between mb-3 text-xs text-gray-500 font-normal">
+                                <span className="uppercase tracking-wide">{item.source}</span>
+                                <span className={`${getScoreColor(item.score)}`}>
+                                  {item.score}점
+                                </span>
+                              </div>
+                              <SafeHtml 
+                                html={item.title}
+                                className="text-base font-bold text-gray-900 mb-3 leading-tight line-clamp-2 flex-grow"
+                              />
+                              <SafeHtml 
+                                html={item.description}
+                                className="text-gray-600 text-xs leading-relaxed line-clamp-3 flex-grow"
+                              />
+                              <div className="mt-auto pt-3 border-t border-gray-100">
+                                <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
+                                  <span>{formatDate(item.pubDate)}</span>
+                                  <span className="text-blue-600 font-medium">
+                                    {item.category}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
           </div>
         )}
 
         {!loading && news.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-600">해당 카테고리의 감동적인 뉴스가 없습니다.</p>
+          <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
+                         <h2 className="text-3xl font-light text-blue-900 mb-4">NO NEWS TODAY</h2>
+            <p className="text-gray-600 font-normal">해당 카테고리의 감동적인 뉴스가 없습니다.</p>
           </div>
         )}
       </main>
+
+      {/* 세련된 신문 푸터 */}
+      <footer className="bg-gradient-to-r from-blue-900 to-purple-900 text-white">
+        <div className="max-w-7xl mx-auto px-6 py-12">
+          <div className="text-center">
+                         <h3 className="text-3xl font-light mb-4">GOOD NEWS PAPER</h3>
+            <p className="text-lg text-blue-100 mb-6 leading-relaxed">
+              따뜻하고 희망찬 뉴스만 모아서 전해드리는 감동 신문
+            </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto mb-6"></div>
+            <div className="text-sm text-blue-200 font-normal">
+              © 2024 Good News Paper. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </footer>
 
       {/* 팝업 모달 */}
       {popupUrl && (
@@ -273,7 +411,7 @@ export default function Home() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
+            backgroundColor: 'rgba(0,0,0,0.8)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -285,20 +423,21 @@ export default function Home() {
           <div 
             style={{
               backgroundColor: 'white',
-              borderRadius: '8px',
+              borderRadius: '16px',
               width: '90%',
               height: '90%',
               display: 'flex',
               flexDirection: 'column',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* 헤더 */}
             <div style={{
-              padding: '15px 20px',
-              borderBottom: '1px solid #e5e7eb',
-              backgroundColor: '#f9fafb',
+              padding: '20px 24px',
+              borderBottom: '2px solid #e5e7eb',
+              backgroundColor: '#f8fafc',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center'
@@ -306,16 +445,18 @@ export default function Home() {
               <h3 style={{ 
                 margin: 0, 
                 fontWeight: 'bold',
-                fontSize: '16px',
+                fontSize: '18px',
                 flex: 1,
-                marginRight: '10px',
+                marginRight: '16px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                fontFamily: 'serif',
+                color: '#1e293b'
               }}>
                 {popupTitle}
               </h3>
-              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <a
                   href={popupUrl}
                   target="_blank"
@@ -323,10 +464,20 @@ export default function Home() {
                   style={{
                     backgroundColor: '#3b82f6',
                     color: 'white',
-                    padding: '6px 12px',
-                    borderRadius: '4px',
+                    padding: '10px 20px',
                     textDecoration: 'none',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   새 탭에서 열기
@@ -337,12 +488,21 @@ export default function Home() {
                     backgroundColor: '#ef4444',
                     color: 'white',
                     border: 'none',
-                    borderRadius: '4px',
-                    width: '32px',
-                    height: '32px',
+                    width: '40px',
+                    height: '40px',
                     cursor: 'pointer',
-                    fontSize: '18px',
-                    fontWeight: 'bold'
+                    fontSize: '20px',
+                    fontWeight: 'bold',
+                    borderRadius: '8px',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = '#dc2626';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = '#ef4444';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   ×
@@ -359,7 +519,7 @@ export default function Home() {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor: 'rgba(255,255,255,0.8)',
+                  backgroundColor: 'rgba(255,255,255,0.95)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -369,13 +529,13 @@ export default function Home() {
                     <div style={{
                       width: '48px',
                       height: '48px',
-                      border: '3px solid #e5e7eb',
-                      borderTop: '3px solid #3b82f6',
+                      border: '4px solid #e5e7eb',
+                      borderTop: '4px solid #3b82f6',
                       borderRadius: '50%',
                       animation: 'spin 1s linear infinite',
                       margin: '0 auto 16px'
                     }}></div>
-                    <p style={{ color: '#6b7280', margin: 0 }}>뉴스 내용을 불러오는 중입니다...</p>
+                    <p style={{ color: '#374151', margin: 0, fontWeight: 'bold' }}>뉴스 내용을 불러오는 중입니다...</p>
                   </div>
                 </div>
               )}
