@@ -128,7 +128,7 @@ async function fetchViaRSS2JSON(url: string, sourceName: string): Promise<NewsIt
       throw new Error(`RSS2JSON 상태 오류: ${data.message}`);
     }
 
-    return data.items.map((item: any) => ({
+    return data.items.map((item: Record<string, unknown>) => ({
       title: item.title || '',
       description: item.description || '',
       link: item.link || '',
@@ -203,7 +203,7 @@ async function fetchViaProxy(url: string, sourceName: string): Promise<NewsItem[
               })) : [];
               
               resolve(newsItems);
-            } catch (parseError) {
+            } catch {
               resolve([]);
             }
           });
@@ -271,7 +271,7 @@ export async function parseRSSFeed(url: string, sourceName: string): Promise<New
               })) : [];
               
               resolve(newsItems);
-            } catch (parseError) {
+            } catch {
               resolve([]);
             }
           });

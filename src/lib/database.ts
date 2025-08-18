@@ -1,5 +1,5 @@
 import { sql } from '@vercel/postgres';
-import { NewsItem, AnalyzedNews } from './types';
+// import { NewsItem, AnalyzedNews } from './types';
 
 // 데이터베이스 테이블 생성
 export async function createTables() {
@@ -94,7 +94,7 @@ export async function getAllNews(category?: string, limit: number = 20): Promise
       `;
     }
 
-    return result.rows.map((row: any) => ({
+    return result.rows.map((row: Record<string, unknown>) => ({
       title: row.title,
       description: row.description,
       link: row.link,
@@ -132,7 +132,7 @@ export async function getInspiringNews(category?: string, limit: number = 20): P
       `;
     }
 
-    return result.rows.map((row: any) => ({
+    return result.rows.map((row: Record<string, unknown>) => ({
       title: row.title,
       description: row.description,
       link: row.link,

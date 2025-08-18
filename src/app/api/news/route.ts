@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchAllNews } from '@/lib/rss';
-import { analyzeNews, filterInspiringNews } from '@/lib/analyzer';
+import { analyzeNews } from '@/lib/analyzer';
 import { getAllNews } from '@/lib/database';
 import { newsCache } from '@/lib/cache';
 import { DUMMY_NEWS } from '@/lib/dummy-data';

@@ -17,7 +17,7 @@ export async function GET() {
       LIMIT 100
     `;
 
-    const logs = result.rows.map((row: any) => ({
+    const logs = result.rows.map((row: Record<string, unknown>) => ({
       source: row.source,
       status: row.status,
       count: row.count,

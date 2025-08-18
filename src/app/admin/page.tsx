@@ -21,7 +21,7 @@ interface CollectionStats {
 
 export default function AdminPage() {
   const [isCollecting, setIsCollecting] = useState(false);
-  const [collectionResult, setCollectionResult] = useState<any>(null);
+  const [collectionResult, setCollectionResult] = useState<Record<string, unknown> | null>(null);
   const [logs, setLogs] = useState<CollectionLog[]>([]);
   const [stats, setStats] = useState<CollectionStats | null>(null);
   const [loading, setLoading] = useState(false);

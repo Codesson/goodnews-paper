@@ -1,4 +1,4 @@
-import { NewsItem, AnalyzedNews } from './types';
+// import { NewsItem, AnalyzedNews } from './types';
 
 // 감동적인 키워드 목록
 const INSPIRING_KEYWORDS = [
@@ -206,12 +206,12 @@ function analyzeCategory(text: string): string {
     return '기타';
   }
 
-  const bestCategory = Object.entries(categoryScores).find(([_, score]) => score === maxScore)?.[0];
+  const bestCategory = Object.entries(categoryScores).find(([, score]) => score === maxScore)?.[0];
   return bestCategory || '기타';
 }
 
 // 뉴스 분석
-export function analyzeNews(news: any): any {
+export function analyzeNews(news: Record<string, unknown>): Record<string, unknown> {
   const title = news.title || '';
   const description = news.description || '';
   const fullText = `${title} ${description}`;
@@ -229,6 +229,6 @@ export function analyzeNews(news: any): any {
 }
 
 // 감동적인 뉴스 필터링
-export function filterInspiringNews(newsList: any[]): any[] {
+export function filterInspiringNews(newsList: Record<string, unknown>[]): Record<string, unknown>[] {
   return newsList.filter(news => news.isInspiring);
 } 

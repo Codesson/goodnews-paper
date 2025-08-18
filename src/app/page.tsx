@@ -11,7 +11,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isDummyData, setIsDummyData] = useState(false);
   const [isCached, setIsCached] = useState(false);
-  const [cacheInfo, setCacheInfo] = useState<any>(null);
+  const [cacheInfo, setCacheInfo] = useState<Record<string, unknown> | null>(null);
   const [popupUrl, setPopupUrl] = useState<string | null>(null);
   const [popupTitle, setPopupTitle] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(false);
@@ -48,7 +48,8 @@ export default function Home() {
       } else {
         setError(data.error || '뉴스를 불러오는 중 오류가 발생했습니다.');
       }
-    } catch (err) {
+    } catch (err: unknown) {
+      console.error('뉴스 불러오기 에러:', err);
       setError('뉴스를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
@@ -223,7 +224,7 @@ export default function Home() {
             {category === 'all' && news.length > 0 && (
               <div className="border-b-4 border-gradient-to-r from-blue-600 to-purple-600 pb-8 mb-8">
                 <div className="text-center mb-8">
-                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">TODAY'S HEADLINES</h2>
+                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">TODAY&apos;S HEADLINES</h2>
                   <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
                 </div>
                 
