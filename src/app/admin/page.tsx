@@ -141,14 +141,19 @@ export default function AdminPage() {
               <div className="text-sm">
                 {String(collectionResult.message || collectionResult.error || '')}
               </div>
-              {collectionResult.data && typeof collectionResult.data === 'object' && (
-                <div className="mt-2 text-sm">
-                  <div>📊 수집된 뉴스: {(collectionResult.data as any).collected || 0}개</div>
-                  <div>💾 저장된 뉴스: {(collectionResult.data as any).saved || 0}개</div>
-                  <div>✨ 감동적인 뉴스: {(collectionResult.data as any).inspiring || 0}개</div>
-                  <div>📅 수집 시간: {formatDate((collectionResult.data as any).timestamp || new Date().toISOString())}</div>
-                </div>
-              )}
+              {(() => {
+                const data = collectionResult.data;
+                if (!data || typeof data !== 'object') return null;
+                const typedData = data as Record<string, unknown>;
+                return (
+                  <div className="mt-2 text-sm">
+                    <div>📊 수집된 뉴스: {Number(typedData.collected) || 0}개</div>
+                    <div>💾 저장된 뉴스: {Number(typedData.saved) || 0}개</div>
+                    <div>✨ 감동적인 뉴스: {Number(typedData.inspiring) || 0}개</div>
+                    <div>📅 수집 시간: {formatDate(String(typedData.timestamp) || new Date().toISOString())}</div>
+                  </div>
+                );
+              })()}
             </div>
           )}
         </div>

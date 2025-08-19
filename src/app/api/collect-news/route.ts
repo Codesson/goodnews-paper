@@ -25,7 +25,7 @@ export async function POST() {
     
     // 2단계: 뉴스 분석 (감동적인 뉴스 필터링 제거)
     console.log('🔍 뉴스 분석 중...');
-    const analyzedNews = allNews.map(news => analyzeNews(news));
+    const analyzedNews = allNews.map(news => analyzeNews(news as unknown as Record<string, unknown>));
     
     // 모든 뉴스를 저장 (감동적인 뉴스만이 아닌 전체)
     console.log(`💾 모든 뉴스 ${analyzedNews.length}개를 데이터베이스에 저장 중...`);

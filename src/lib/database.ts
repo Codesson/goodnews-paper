@@ -51,12 +51,12 @@ export async function createTables() {
 }
 
 // 뉴스 데이터 저장
-export async function saveNews(newsItems: AnalyzedNews[]): Promise<void> {
+export async function saveNews(newsItems: Record<string, unknown>[]): Promise<void> {
   try {
     for (const news of newsItems) {
       await sql`
         INSERT INTO news (title, description, link, pub_date, source, category, is_inspiring, score, reason)
-        VALUES (${news.title}, ${news.description}, ${news.link}, ${news.pubDate}, ${news.source}, ${news.category}, ${news.isInspiring}, ${news.score}, ${news.reason})
+        VALUES (${String(news.title)}, ${String(news.description)}, ${String(news.link)}, ${String(news.pubDate)}, ${String(news.source)}, ${String(news.category)}, ${Boolean(news.isInspiring)}, ${Number(news.score)}, ${String(news.reason)})
         ON CONFLICT (link) DO UPDATE SET
           title = EXCLUDED.title,
           description = EXCLUDED.description,
@@ -75,7 +75,7 @@ export async function saveNews(newsItems: AnalyzedNews[]): Promise<void> {
 }
 
 // 모든 뉴스 조회 (감동적인 뉴스 필터링 제거)
-export async function getAllNews(category?: string, limit: number = 20): Promise<AnalyzedNews[]> {
+export async function getAllNews(category?: string, limit: number = 20): Promise<Record<string, unknown>[]> {
   try {
     let result;
 
@@ -112,7 +112,7 @@ export async function getAllNews(category?: string, limit: number = 20): Promise
 }
 
 // 감동적인 뉴스 조회 (기존 함수 유지)
-export async function getInspiringNews(category?: string, limit: number = 20): Promise<AnalyzedNews[]> {
+export async function getInspiringNews(category?: string, limit: number = 20): Promise<Record<string, unknown>[]> {
   try {
     let result;
 

@@ -46,7 +46,8 @@ export async function GET(request: Request) {
           
           // 캐시에 저장
           const cacheKey = `news_${category}_${limit}`;
-          newsCache.set(cacheKey, dbNews);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          newsCache.set(cacheKey, dbNews as any);
           
           return NextResponse.json({
             success: true,
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
         console.log(`📊 RSS에서 ${allNews.length}개 뉴스 수집 완료`);
         
         // 뉴스 분석
-        const analyzedNews = allNews.map(news => analyzeNews(news));
+        const analyzedNews = allNews.map(news => analyzeNews(news as unknown as Record<string, unknown>));
         
         // 카테고리 필터링
         let filteredNews = analyzedNews;
@@ -86,7 +87,8 @@ export async function GET(request: Request) {
         
         // 캐시에 저장
         const cacheKey = `news_${category}_${limit}`;
-        newsCache.set(cacheKey, limitedNews);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        newsCache.set(cacheKey, limitedNews as any);
         
         console.log(`✅ RSS 피드에서 ${limitedNews.length}개 뉴스 반환`);
         

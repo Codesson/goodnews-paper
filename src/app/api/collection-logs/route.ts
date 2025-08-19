@@ -31,7 +31,7 @@ export async function GET() {
       success: logs.filter(log => log.status === 'success').length,
       failed: logs.filter(log => log.status === 'failed').length,
       error: logs.filter(log => log.status === 'error').length,
-      totalCollected: logs.reduce((sum, log) => sum + (log.count || 0), 0),
+      totalCollected: logs.reduce((sum, log) => sum + (Number(log.count) || 0), 0),
       lastCollection: logs[0]?.createdAt || null
     };
 
