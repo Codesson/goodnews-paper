@@ -98,7 +98,7 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">📊 뉴스 수집 관리</h1>
+          <h1 className="text-3xl font-bold text-gray-900">뉴스 수집 관리</h1>
           <p className="text-gray-600 mt-2">
             RSS 피드에서 뉴스를 수집하고 데이터베이스에 저장합니다.
           </p>
@@ -107,7 +107,7 @@ export default function AdminPage() {
         {/* 수집 실행 섹션 */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            🔄 뉴스 수집 실행
+뉴스 수집 실행
           </h2>
           
           <div className="flex items-center space-x-4">
@@ -147,10 +147,10 @@ export default function AdminPage() {
                 const typedData = data as Record<string, unknown>;
                 return (
                   <div className="mt-2 text-sm">
-                    <div>📊 수집된 뉴스: {Number(typedData.collected) || 0}개</div>
-                    <div>💾 저장된 뉴스: {Number(typedData.saved) || 0}개</div>
-                    <div>✨ 감동적인 뉴스: {Number(typedData.inspiring) || 0}개</div>
-                    <div>📅 수집 시간: {formatDate(String(typedData.timestamp) || new Date().toISOString())}</div>
+                    <div>수집된 뉴스: {Number(typedData.collected) || 0}개</div>
+                    <div>저장된 뉴스: {Number(typedData.saved) || 0}개</div>
+                    <div>감동적인 뉴스: {Number(typedData.inspiring) || 0}개</div>
+                    <div>수집 시간: {formatDate(String(typedData.timestamp) || new Date().toISOString())}</div>
                   </div>
                 );
               })()}

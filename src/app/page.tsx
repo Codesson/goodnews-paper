@@ -238,9 +238,8 @@ export default function Home() {
                 따뜻하고 희망찬 뉴스만 모아서 전해드리는 감동 신문
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 font-normal space-y-1 sm:space-y-0">
-              <span className="flex items-center">
-                <span className="mr-1">📅</span>
+                        <div className="flex flex-col sm:flex-row justify-between items-center text-xs text-gray-500 font-normal space-y-1 sm:space-y-0">
+              <span>
                 {new Date().toLocaleDateString('ko-KR', { 
                   year: 'numeric', 
                   month: 'long', 
@@ -248,14 +247,8 @@ export default function Home() {
                   weekday: 'long'
                 })}
               </span>
-              <span className="flex items-center">
-                <span className="mr-1">📰</span>
-                Vol. 1 No. 1
-              </span>
-                             <span className="flex items-center">
-                <span className="mr-1">🌟</span>
-                감동 뉴스 페이퍼
-              </span>
+              <span>Vol. 1 No. 1</span>
+              <span>감동 뉴스 페이퍼</span>
             </div>
           </div>
         </div>
@@ -289,7 +282,6 @@ export default function Home() {
         {error && (
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 text-amber-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="text-2xl mr-3">⚠️</span>
               <span className="font-normal">{error}</span>
             </div>
           </div>
@@ -298,7 +290,6 @@ export default function Home() {
         {isDummyData && (
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 text-blue-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="text-2xl mr-3">ℹ️</span>
               <span className="font-normal">현재 테스트용 샘플 뉴스를 보여드리고 있습니다. RSS 피드 연결이 완료되면 실시간 뉴스로 업데이트됩니다.</span>
             </div>
           </div>
@@ -307,7 +298,6 @@ export default function Home() {
         {isCached && (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
             <div className="flex items-center">
-              <span className="text-2xl mr-3">⚡</span>
               <span className="font-normal">캐시된 데이터를 빠르게 로드했습니다.</span>
             </div>
           </div>
