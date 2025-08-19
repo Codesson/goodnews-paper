@@ -139,7 +139,7 @@ export default function AdminPage() {
                 {collectionResult.success ? '✅ 수집 완료' : '❌ 수집 실패'}
               </div>
               <div className="text-sm">
-                {collectionResult.message || collectionResult.error}
+                {String(collectionResult.message || collectionResult.error || '')}
               </div>
               {collectionResult.data && (
                 <div className="mt-2 text-sm">

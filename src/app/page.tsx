@@ -11,7 +11,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [isDummyData, setIsDummyData] = useState(false);
   const [isCached, setIsCached] = useState(false);
-  const [cacheInfo, setCacheInfo] = useState<Record<string, unknown> | null>(null);
+  // const [cacheInfo, setCacheInfo] = useState<Record<string, unknown> | null>(null);
   const [popupUrl, setPopupUrl] = useState<string | null>(null);
   const [popupTitle, setPopupTitle] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(false);
@@ -44,7 +44,7 @@ export default function Home() {
         setNews(data.data);
         setIsDummyData(data.isDummyData || false);
         setIsCached(data.isCached || false);
-        setCacheInfo(data.cacheInfo || null);
+        // setCacheInfo(data.cacheInfo || null);
       } else {
         setError(data.error || '뉴스를 불러오는 중 오류가 발생했습니다.');
       }
