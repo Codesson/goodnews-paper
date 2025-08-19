@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnalyzedNews } from '@/lib/types';
 import { formatDate, getScoreColor } from '@/lib/utils';
+import Head from 'next/head';
 
 export default function Home() {
   const [news, setNews] = useState<AnalyzedNews[]>([]);
@@ -115,9 +116,111 @@ export default function Home() {
     );
   };
 
+  // JSON-LD 구조화된 데이터
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsMediaOrganization",
+    "name": "Good News Paper",
+    "alternateName": "굿뉴스페이퍼",
+    "url": "https://goodnews-paper.vercel.app",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://goodnews-paper.vercel.app/logo.png",
+      "width": 300,
+      "height": 300
+    },
+    "description": "감동적이고 긍정적인 뉴스만을 엄선하여 전해드리는 Good News Paper",
+    "foundingDate": "2024",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer service",
+      "email": "contact@goodnews-paper.com"
+    },
+    "sameAs": [
+      "https://twitter.com/goodnewspaper"
+    ],
+    "publishingPrinciples": "https://goodnews-paper.vercel.app/editorial-policy",
+    "diversityPolicy": "https://goodnews-paper.vercel.app/diversity-policy",
+    "ethicsPolicy": "https://goodnews-paper.vercel.app/ethics-policy",
+    "masthead": "https://goodnews-paper.vercel.app/about",
+    "missionCoveragePrioritiesPolicy": "https://goodnews-paper.vercel.app/mission",
+    "ownershipFundingInfo": "https://goodnews-paper.vercel.app/funding",
+    "unnamedSourcesPolicy": "https://goodnews-paper.vercel.app/sources-policy"
+  };
+
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Good News Paper",
+    "url": "https://goodnews-paper.vercel.app",
+    "description": "따뜻하고 희망찬 뉴스만 모아서 전해드리는 감동 신문",
+    "inLanguage": "ko-KR",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://goodnews-paper.vercel.app/?category={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Good News Paper",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://goodnews-paper.vercel.app/logo.png"
+      }
+    }
+  };
+
+  // 카테고리별 동적 메타데이터
+  const getCategoryTitle = () => {
+    if (category === 'all') return 'Good News Paper - 따뜻하고 희망찬 뉴스만 모아서';
+    return `${category} 뉴스 - Good News Paper`;
+  };
+
+  const getCategoryDescription = () => {
+    const descriptions: Record<string, string> = {
+      '국내': '대한민국의 따뜻하고 감동적인 국내 뉴스를 전해드립니다.',
+      '국제': '전 세계의 희망적이고 긍정적인 국제 뉴스를 전해드립니다.',
+      '인물': '감동을 주는 사람들의 이야기와 인물 뉴스를 전해드립니다.',
+      '사회': '우리 사회의 따뜻한 변화와 희망적인 사회 뉴스를 전해드립니다.',
+      '환경': '지구를 위한 긍정적인 변화와 환경 보호 뉴스를 전해드립니다.',
+      '과학': '인류의 발전을 이끄는 놀라운 과학 기술 뉴스를 전해드립니다.',
+      '교육': '미래를 이끌어갈 교육과 학습에 관한 희망적인 뉴스를 전해드립니다.'
+    };
+    return descriptions[category] || '감동적이고 긍정적인 뉴스만을 엄선하여 전해드리는 Good News Paper';
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans">
-      {/* 간략한 신문 헤더 */}
+    <>
+      <Head>
+        <title>{getCategoryTitle()}</title>
+        <meta name="description" content={getCategoryDescription()} />
+        <meta property="og:title" content={getCategoryTitle()} />
+        <meta property="og:description" content={getCategoryDescription()} />
+        <meta property="og:url" content={`https://goodnews-paper.vercel.app${category !== 'all' ? `?category=${category}` : ''}`} />
+        <meta name="twitter:title" content={getCategoryTitle()} />
+        <meta name="twitter:description" content={getCategoryDescription()} />
+        <link rel="canonical" href={`https://goodnews-paper.vercel.app${category !== 'all' ? `?category=${category}` : ''}`} />
+      </Head>
+      
+      {/* JSON-LD 구조화된 데이터 */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd, null, 2),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteJsonLd, null, 2),
+        }}
+      />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 font-sans">
+        {/* 간략한 신문 헤더 */}
       <header className="bg-white shadow-lg border-b-2 border-blue-900">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center py-4">
@@ -555,6 +658,7 @@ export default function Home() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

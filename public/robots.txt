@@ -1,0 +1,34 @@
+# Good News Paper Robots.txt
+
+User-agent: *
+Allow: /
+
+# 주요 페이지들
+Allow: /
+Allow: /admin
+
+# API 경로는 크롤링 제외
+Disallow: /api/
+
+# 사이트맵 위치
+Sitemap: https://goodnews-paper.vercel.app/sitemap.xml
+
+# 크롤링 지연 설정 (1초)
+Crawl-delay: 1
+
+# 검색엔진별 설정
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: NaverBot
+Allow: /
+Crawl-delay: 1
+
+User-agent: DaumBot
+Allow: /
+Crawl-delay: 1
