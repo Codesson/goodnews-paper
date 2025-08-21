@@ -161,6 +161,26 @@ export async function saveCollectionLog(source: string, status: string, count: n
   }
 }
 
+// 오늘 날짜 기사 확인
+export async function hasTodayNews(): Promise<boolean> {
+  try {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    
+    const result = await sql`
+      SELECT COUNT(*) as count FROM news 
+      WHERE pub_date >= ${todayStart.toISOString()} 
+      AND pub_date < ${todayEnd.toISOString()}
+    `;
+    
+    return parseInt(result.rows[0].count as string) > 0;
+  } catch (error) {
+    console.error('오늘 날짜 기사 확인 오류:', error);
+    return false;
+  }
+}
+
 // 데이터베이스 통계 조회
 export async function getDatabaseStats() {
   try {

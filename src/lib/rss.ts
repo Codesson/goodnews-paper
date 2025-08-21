@@ -1,60 +1,14 @@
 import { parseString } from 'xml2js';
 import { NewsItem, RSSFeed } from './types';
 
-// RSS 피드 목록 (실제 작동하는 URL들 + 프록시 시도)
+// RSS 피드 목록 (빠른 응답 피드들로 최적화)
 export const RSS_FEEDS: RSSFeed[] = [
-  // 국내 언론사 (프록시를 통한 접근 시도)
-  {
-    name: '매일경제',
-    url: 'https://www.mk.co.kr/rss/30000001/',
-    category: '국내'
-  },
-  {
-    name: '조선일보',
-    url: 'https://www.chosun.com/rss',
-    category: '국내'
-  },
-  {
-    name: '동아일보',
-    url: 'https://www.donga.com/rss',
-    category: '국내'
-  },
+  // 빠른 응답 피드들 (우선순위)
   {
     name: '한겨레',
     url: 'http://www.hani.co.kr/rss/',
     category: '국내'
   },
-  {
-    name: '경향신문',
-    url: 'https://www.khan.co.kr/rss/',
-    category: '국내'
-  },
-  {
-    name: '연합뉴스',
-    url: 'https://www.yna.co.kr/rss/',
-    category: '국내'
-  },
-  {
-    name: 'KBS 뉴스',
-    url: 'http://news.kbs.co.kr/rss/',
-    category: '국내'
-  },
-  {
-    name: 'MBC 뉴스',
-    url: 'https://imnews.imbc.com/rss/',
-    category: '국내'
-  },
-  {
-    name: 'SBS 뉴스',
-    url: 'https://news.sbs.co.kr/rss',
-    category: '국내'
-  },
-  {
-    name: 'YTN 뉴스',
-    url: 'https://www.ytn.co.kr/rss/',
-    category: '국내'
-  },
-  // 국제 언론사 (실제 작동하는 것들)
   {
     name: 'BBC 뉴스',
     url: 'https://feeds.bbci.co.uk/news/rss.xml',
@@ -76,25 +30,24 @@ export const RSS_FEEDS: RSSFeed[] = [
     category: '국제'
   },
   {
-    name: '더버지',
-    url: 'https://www.theverge.com/rss/index.xml',
-    category: '국제'
-  },
-  {
     name: '아르스 테크니카',
     url: 'https://feeds.arstechnica.com/arstechnica/index',
-    category: '국제'
-  },
-  // 긍정적 뉴스 전문 사이트
-  {
-    name: 'Positive News',
-    url: 'https://www.positive.news/feed/',
     category: '국제'
   },
   {
     name: 'Good News Network',
     url: 'https://www.goodnewsnetwork.org/feed/',
     category: '국제'
+  },
+  {
+    name: 'Positive News',
+    url: 'https://www.positive.news/feed/',
+    category: '국제'
+  },
+  {
+    name: '매일경제',
+    url: 'https://www.mk.co.kr/rss/30000001/',
+    category: '국내'
   }
 ];
 
@@ -111,12 +64,18 @@ async function fetchViaRSS2JSON(url: string, sourceName: string): Promise<NewsIt
   try {
     const rss2jsonUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1500); // 3초 → 1.5초로 단축
+    
     const response = await fetch(rss2jsonUrl, {
+      signal: controller.signal,
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; GoodNewsBot/1.0)',
         'Accept': 'application/json'
       }
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`RSS2JSON API 오류: ${response.status}`);
@@ -154,7 +113,7 @@ async function fetchViaProxy(url: string, sourceName: string): Promise<NewsItem[
     for (const proxyUrl of proxyUrls) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
+        const timeoutId = setTimeout(() => controller.abort(), 1500); // 3초 → 1.5초로 단축
 
         const response = await fetch(proxyUrl, {
           signal: controller.signal,
@@ -224,9 +183,9 @@ async function fetchViaProxy(url: string, sourceName: string): Promise<NewsItem[
 // RSS 피드 파싱 (개선된 에러 처리 + 프록시/API 시도)
 export async function parseRSSFeed(url: string, sourceName: string): Promise<NewsItem[]> {
   try {
-    // 1단계: 직접 접근 시도 (개선된 헤더)
+    // 1단계: 직접 접근 시도 (타임아웃 대폭 단축)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 2000); // 5초 → 2초로 단축
 
     const response = await fetch(url, {
       signal: controller.signal,
@@ -304,13 +263,23 @@ export async function parseRSSFeed(url: string, sourceName: string): Promise<New
   }
 }
 
-// 모든 RSS 피드에서 뉴스 수집 (개선된 에러 처리)
+// 모든 RSS 피드에서 뉴스 수집 (성능 최적화)
 export async function fetchAllNews(): Promise<NewsItem[]> {
   try {
     console.log('RSS 피드 수집 시작...');
     
+    // 병렬 처리로 모든 피드 동시 수집 (타임아웃 최적화)
     const allNews = await Promise.allSettled(
-      RSS_FEEDS.map(feed => parseRSSFeed(feed.url, feed.name))
+      RSS_FEEDS.map(async (feed) => {
+        try {
+          const news = await parseRSSFeed(feed.url, feed.name);
+          console.log(`${feed.name}: ${news.length}개 기사 수집 완료`);
+          return news;
+        } catch (error) {
+          console.warn(`${feed.name}: 수집 실패 - ${error}`);
+          return [];
+        }
+      })
     );
     
     const successfulNews = allNews
@@ -318,7 +287,7 @@ export async function fetchAllNews(): Promise<NewsItem[]> {
       .map(result => (result as PromiseFulfilledResult<NewsItem[]>).value)
       .flat();
     
-    console.log(`총 ${successfulNews.length}개의 뉴스 수집 완료`);
+    console.log(`총 ${successfulNews.length}개의 뉴스 수집 완료 (${RSS_FEEDS.length}개 소스 중 ${allNews.filter(r => r.status === 'fulfilled').length}개 성공)`);
     
     return successfulNews.sort((a, b) => 
       new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime()

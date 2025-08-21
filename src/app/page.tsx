@@ -8,7 +8,7 @@ import Head from 'next/head';
 export default function Home() {
   const [news, setNews] = useState<AnalyzedNews[]>([]);
   const [loading, setLoading] = useState(true);
-  const [category, setCategory] = useState('all');
+  // 카테고리 상태 제거 - 항상 전체 뉴스 표시
   const [error, setError] = useState('');
   const [isDummyData, setIsDummyData] = useState(false);
   const [isCached, setIsCached] = useState(false);
@@ -17,16 +17,7 @@ export default function Home() {
   const [popupTitle, setPopupTitle] = useState<string>('');
   const [iframeLoading, setIframeLoading] = useState(false);
 
-  const categories = [
-    { id: 'all', name: '전체' },
-    { id: '국내', name: '국내' },
-    { id: '국제', name: '국제' },
-    { id: '인물', name: '인물' },
-    { id: '사회', name: '사회' },
-    { id: '환경', name: '환경' },
-    { id: '과학', name: '과학' },
-    { id: '교육', name: '교육' }
-  ];
+  // 카테고리 목록 제거 - 더 이상 사용하지 않음
 
   const fetchNews = useCallback(async () => {
     setLoading(true);
@@ -34,17 +25,25 @@ export default function Home() {
     
     try {
       const params = new URLSearchParams({
-        category: category,
-        limit: '300', // 267개 뉴스를 모두 가져오기 위해 300으로 설정
+        category: 'all', // 항상 전체 뉴스 조회
+        limit: '50', // 성능 개선을 위해 50개로 줄임
+        useDatabase: 'true', // DB에서 조회하도록 강제 설정
+        refresh: 'false', // 캐시 사용하여 빠른 로딩
+        inspiring: 'true' // 감동 뉴스만 조회
       });
 
       const response = await fetch(`/api/news?${params}`);
       const data = await response.json();
 
       if (data.success) {
-        setNews(data.data);
-        setIsDummyData(data.isDummyData || false);
-        setIsCached(data.isCached || false);
+        // 감동 뉴스만 조회하므로 점수 순으로 정렬
+        const sortedNews = data.data.sort((a: AnalyzedNews, b: AnalyzedNews) => {
+          return b.score - a.score;
+        });
+        
+        setNews(sortedNews);
+        setIsDummyData(data.source === 'dummy');
+        setIsCached(data.source === 'cache');
         // setCacheInfo(data.cacheInfo || null);
       } else {
         setError(data.error || '뉴스를 불러오는 중 오류가 발생했습니다.');
@@ -55,7 +54,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, [category]);
+  }, []); // 의존성 배열 수정
 
   useEffect(() => {
     fetchNews();
@@ -173,36 +172,21 @@ export default function Home() {
     }
   };
 
-  // 카테고리별 동적 메타데이터
-  const getCategoryTitle = () => {
-    if (category === 'all') return 'Good News Paper - 따뜻하고 희망찬 뉴스만 모아서';
-    return `${category} 뉴스 - Good News Paper`;
-  };
-
-  const getCategoryDescription = () => {
-    const descriptions: Record<string, string> = {
-      '국내': '대한민국의 따뜻하고 감동적인 국내 뉴스를 전해드립니다.',
-      '국제': '전 세계의 희망적이고 긍정적인 국제 뉴스를 전해드립니다.',
-      '인물': '감동을 주는 사람들의 이야기와 인물 뉴스를 전해드립니다.',
-      '사회': '우리 사회의 따뜻한 변화와 희망적인 사회 뉴스를 전해드립니다.',
-      '환경': '지구를 위한 긍정적인 변화와 환경 보호 뉴스를 전해드립니다.',
-      '과학': '인류의 발전을 이끄는 놀라운 과학 기술 뉴스를 전해드립니다.',
-      '교육': '미래를 이끌어갈 교육과 학습에 관한 희망적인 뉴스를 전해드립니다.'
-    };
-    return descriptions[category] || '감동적이고 긍정적인 뉴스만을 엄선하여 전해드리는 Good News Paper';
-  };
+  // 메타데이터 고정
+  const getTitle = () => 'Good News Paper - 따뜻하고 희망찬 뉴스만 모아서';
+  const getDescription = () => '감동적이고 긍정적인 뉴스만을 엄선하여 전해드리는 Good News Paper';
 
   return (
     <>
       <Head>
-        <title>{getCategoryTitle()}</title>
-        <meta name="description" content={getCategoryDescription()} />
-        <meta property="og:title" content={getCategoryTitle()} />
-        <meta property="og:description" content={getCategoryDescription()} />
-        <meta property="og:url" content={`https://goodnews-paper.vercel.app${category !== 'all' ? `?category=${category}` : ''}`} />
-        <meta name="twitter:title" content={getCategoryTitle()} />
-        <meta name="twitter:description" content={getCategoryDescription()} />
-        <link rel="canonical" href={`https://goodnews-paper.vercel.app${category !== 'all' ? `?category=${category}` : ''}`} />
+        <title>{getTitle()}</title>
+        <meta name="description" content={getDescription()} />
+        <meta property="og:title" content={getTitle()} />
+        <meta property="og:description" content={getDescription()} />
+        <meta property="og:url" content="https://goodnews-paper.vercel.app" />
+        <meta name="twitter:title" content={getTitle()} />
+        <meta name="twitter:description" content={getDescription()} />
+        <link rel="canonical" href="https://goodnews-paper.vercel.app" />
       </Head>
       
       {/* JSON-LD 구조화된 데이터 */}
@@ -254,24 +238,65 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 간략한 카테고리 선택 */}
+      {/* 카테고리 버튼 */}
       <div className="bg-gradient-to-r from-blue-900 to-purple-900 shadow-md">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex justify-center py-3">
-            <div className="flex flex-wrap justify-center gap-1">
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setCategory(cat.id)}
-                  className={`px-4 py-2 rounded-full text-sm font-normal transition-all duration-300 transform hover:scale-105 ${
-                    category === cat.id
-                      ? 'bg-white text-blue-900 shadow-md'
-                      : 'bg-white/10 text-white hover:bg-white/20 backdrop-blur-sm'
-                  }`}
-                >
-                  {cat.name}
-                </button>
-              ))}
+          <div className="flex justify-start py-3">
+            <div className="flex space-x-6">
+              <a
+                href="/category/정치"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                정치
+              </a>
+              <a
+                href="/category/국제"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                국제
+              </a>
+              <a
+                href="/category/경제"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                경제
+              </a>
+              <a
+                href="/category/사회"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                사회
+              </a>
+              <a
+                href="/category/문화"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                문화
+              </a>
+              <a
+                href="/category/과학"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                과학
+              </a>
+              <a
+                href="/category/환경"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                환경
+              </a>
+              <a
+                href="/category/교육"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                교육
+              </a>
+              <a
+                href="/category/인물"
+                className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+              >
+                인물
+              </a>
             </div>
           </div>
         </div>
@@ -294,14 +319,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        {isCached && (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 text-green-800 px-6 py-4 mb-6 rounded-r-lg shadow-md">
-            <div className="flex items-center">
-              <span className="font-normal">캐시된 데이터를 빠르게 로드했습니다.</span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 메인 콘텐츠 - 세련된 카드 레이아웃 */}
@@ -313,28 +330,34 @@ export default function Home() {
           </div>
         ) : (
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 mb-8">
-            {/* 헤드라인 섹션 */}
-            {category === 'all' && news.length > 0 && (
-              <div className="border-b-4 border-gradient-to-r from-blue-600 to-purple-600 pb-8 mb-8">
+            {/* 감동 뉴스 섹션 */}
+            {news.length > 0 && (
+              <div className="border-b-4 border-gradient-to-r from-pink-500 to-red-500 pb-8 mb-8">
                 <div className="text-center mb-8">
-                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">TODAY&apos;S HEADLINES</h2>
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
+                  <h2 className="text-4xl md:text-5xl font-light text-pink-700 mb-4">감동 뉴스</h2>
+                  <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-red-500 mx-auto"></div>
+                  <p className="text-lg text-gray-600 mt-4">마음을 따뜻하게 하는 특별한 뉴스</p>
                 </div>
                 
-                {/* 헤드라인 카드 그리드 */}
+                {/* 감동 뉴스 카드 그리드 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {news.slice(0, 8).map((item, index) => (
+                  {news.slice(0, 16).map((item, index) => (
                     <article
-                      key={`headline-${item.source}-${index}`}
+                      key={`inspiring-${item.source}-${index}`}
                       className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
                       onClick={() => openPopup(item.link, item.title)}
                     >
                       <div className="p-6 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
                           <span className="uppercase tracking-wide">{item.source}</span>
-                          <span className={`${getScoreColor(item.score)}`}>
-                            {item.score}점
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-pink-500 font-bold text-sm">
+                              감동
+                            </span>
+                            <span className={`${getScoreColor(item.score)}`}>
+                              {item.score}점
+                            </span>
+                          </div>
                         </div>
                         <SafeHtml 
                           html={item.title}
@@ -359,123 +382,14 @@ export default function Home() {
               </div>
             )}
 
-            {/* 카테고리별 섹션 */}
-            {category !== 'all' && news.length > 0 && (
-              <div>
-                <div className="text-center mb-8">
-                                     <h2 className="text-4xl md:text-5xl font-light text-blue-900 mb-4">
-                     {category.toUpperCase()} NEWS
-                   </h2>
-                  <div className="w-16 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
-                </div>
-                
-                {/* 카드 그리드 레이아웃 */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {news.map((item, index) => (
-                    <article
-                      key={`${item.source}-${index}`}
-                      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
-                      onClick={() => openPopup(item.link, item.title)}
-                    >
-                      <div className="p-6 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
-                          <span className="uppercase tracking-wide">{item.source}</span>
-                          <span className={`${getScoreColor(item.score)}`}>
-                            {item.score}점
-                          </span>
-                        </div>
-                        <SafeHtml 
-                          html={item.title}
-                          className="text-lg font-bold text-gray-900 mb-4 leading-tight line-clamp-3 flex-grow"
-                        />
-                        <SafeHtml 
-                          html={item.description}
-                          className="text-gray-600 text-sm leading-relaxed line-clamp-4 flex-grow"
-                        />
-                        <div className="mt-auto pt-4 border-t border-gray-100">
-                          <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
-                            <span>{formatDate(item.pubDate)}</span>
-                            <span className="text-blue-600 font-medium">
-                              {item.category}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* 카테고리별 그룹화된 섹션 (전체 보기일 때) */}
-            {category === 'all' && news.length > 0 && (
-              <div>
-                {/* 뉴스를 카테고리별로 그룹화 */}
-                {(() => {
-                  const groupedNews = news.slice(4).reduce((acc, item) => {
-                    if (!acc[item.category]) {
-                      acc[item.category] = [];
-                    }
-                    acc[item.category].push(item);
-                    return acc;
-                  }, {} as Record<string, AnalyzedNews[]>);
-
-                  return Object.entries(groupedNews).map(([cat, catNews]) => (
-                    <div key={cat} className="mb-12">
-                      <div className="text-center mb-8">
-                                                 <h3 className="text-3xl md:text-4xl font-light text-blue-900 mb-4">
-                           {cat.toUpperCase()} SECTION
-                         </h3>
-                        <div className="w-12 h-1 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto"></div>
-                      </div>
-                      
-                      {/* 카드 그리드 레이아웃 */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {catNews.slice(0, 8).map((item, index) => (
-                          <article
-                            key={`${cat}-${item.source}-${index}`}
-                            className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
-                            onClick={() => openPopup(item.link, item.title)}
-                          >
-                            <div className="p-4 h-full flex flex-col">
-                              <div className="flex items-center justify-between mb-3 text-xs text-gray-500 font-normal">
-                                <span className="uppercase tracking-wide">{item.source}</span>
-                                <span className={`${getScoreColor(item.score)}`}>
-                                  {item.score}점
-                                </span>
-                              </div>
-                              <SafeHtml 
-                                html={item.title}
-                                className="text-base font-bold text-gray-900 mb-3 leading-tight line-clamp-2 flex-grow"
-                              />
-                              <SafeHtml 
-                                html={item.description}
-                                className="text-gray-600 text-xs leading-relaxed line-clamp-3 flex-grow"
-                              />
-                              <div className="mt-auto pt-3 border-t border-gray-100">
-                                <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
-                                  <span>{formatDate(item.pubDate)}</span>
-                                  <span className="text-blue-600 font-medium">
-                                    {item.category}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            )}
+                        {/* 일반 뉴스 섹션은 제거 - 감동 뉴스만 표시 */}
           </div>
         )}
 
         {!loading && news.length === 0 && (
           <div className="text-center py-16 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl">
-                         <h2 className="text-3xl font-light text-blue-900 mb-4">NO NEWS TODAY</h2>
-            <p className="text-gray-600 font-normal">해당 카테고리의 감동적인 뉴스가 없습니다.</p>
+            <h2 className="text-3xl font-light text-pink-700 mb-4">감동 뉴스를 찾고 있습니다</h2>
+            <p className="text-gray-600 font-normal">현재 감동적인 뉴스가 없습니다. 곧 업데이트될 예정입니다.</p>
           </div>
         )}
       </main>
