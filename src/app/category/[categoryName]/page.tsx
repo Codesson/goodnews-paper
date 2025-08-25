@@ -5,6 +5,7 @@ import { AnalyzedNews } from '@/lib/types';
 import { formatDate, getScoreColor } from '@/lib/utils';
 import Head from 'next/head';
 import { useParams } from 'next/navigation';
+import Link from 'next/link';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -137,9 +138,9 @@ export default function CategoryPage() {
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center py-4">
               <div className="mb-2">
-                <a href="/" className="text-5xl md:text-7xl font-light text-blue-900 tracking-wide mb-2 hover:text-purple-700 transition-colors duration-300">
-                  GOOD NEWS PAPER
-                </a>
+                            <Link href="/" className="text-5xl md:text-7xl font-light text-blue-900 tracking-wide mb-2 hover:text-purple-700 transition-colors duration-300">
+              GOOD NEWS PAPER
+            </Link>
                 <div className="w-24 h-0.5 bg-gradient-to-r from-blue-600 to-purple-600 mx-auto mb-2"></div>
                 <h1 className="text-2xl md:text-3xl font-normal text-gray-600 tracking-normal">
                   {categoryName.toUpperCase()} NEWS
@@ -159,9 +160,9 @@ export default function CategoryPage() {
                     weekday: 'long'
                   })}
                 </span>
-                <a href="/" className="text-blue-600 hover:text-purple-600 transition-colors duration-300">
-                  ← 홈으로 돌아가기
-                </a>
+                              <Link href="/" className="text-blue-600 hover:text-purple-600 transition-colors duration-300">
+                ← 홈으로 돌아가기
+              </Link>
                 <span>{categoryName} 섹션</span>
               </div>
             </div>

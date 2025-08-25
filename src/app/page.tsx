@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AnalyzedNews } from '@/lib/types';
 import { formatDate, getScoreColor } from '@/lib/utils';
+import { trackNewsClick, trackCategoryNavigation } from '@/lib/analytics';
 import Head from 'next/head';
+import Link from 'next/link';
 
 export default function Home() {
   const [news, setNews] = useState<AnalyzedNews[]>([]);
@@ -11,7 +13,7 @@ export default function Home() {
   // 카테고리 상태 제거 - 항상 전체 뉴스 표시
   const [error, setError] = useState('');
   const [isDummyData, setIsDummyData] = useState(false);
-  const [isCached, setIsCached] = useState(false);
+  // const [isCached, setIsCached] = useState(false);
   // const [cacheInfo, setCacheInfo] = useState<Record<string, unknown> | null>(null);
   const [popupUrl, setPopupUrl] = useState<string | null>(null);
   const [popupTitle, setPopupTitle] = useState<string>('');
@@ -43,7 +45,7 @@ export default function Home() {
         
         setNews(sortedNews);
         setIsDummyData(data.source === 'dummy');
-        setIsCached(data.source === 'cache');
+        // setIsCached(data.source === 'cache');
         // setCacheInfo(data.cacheInfo || null);
       } else {
         setError(data.error || '뉴스를 불러오는 중 오류가 발생했습니다.');
@@ -81,8 +83,12 @@ export default function Home() {
   }, [popupUrl]);
 
   // 팝업 열기
-  const openPopup = (url: string, title: string) => {
+  const openPopup = (url: string, title: string, category: string, isInspiring: boolean) => {
     console.log('팝업 열기 시도:', { url, title });
+    
+    // GA 이벤트 추적
+    trackNewsClick(title, category, isInspiring);
+    
     setPopupUrl(url);
     setPopupTitle(title);
     setIframeLoading(true);
@@ -243,60 +249,69 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex justify-start py-3">
             <div className="flex space-x-6">
-              <a
+              <Link
                 href="/category/정치"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('정치')}
               >
                 정치
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/국제"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('국제')}
               >
                 국제
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/경제"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('경제')}
               >
                 경제
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/사회"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('사회')}
               >
                 사회
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/문화"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('문화')}
               >
                 문화
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/과학"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('과학')}
               >
                 과학
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/환경"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('환경')}
               >
                 환경
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/교육"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('교육')}
               >
                 교육
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/category/인물"
                 className="text-white hover:text-pink-200 transition-colors duration-300 text-sm font-normal"
+                onClick={() => trackCategoryNavigation('인물')}
               >
                 인물
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -345,7 +360,7 @@ export default function Home() {
                     <article
                       key={`inspiring-${item.source}-${index}`}
                       className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
-                      onClick={() => openPopup(item.link, item.title)}
+                      onClick={() => openPopup(item.link, item.title, item.category, item.isInspiring)}
                     >
                       <div className="p-6 h-full flex flex-col">
                         <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
