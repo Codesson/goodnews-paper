@@ -1,6 +1,25 @@
 import { parseString } from 'xml2js';
 import { NewsItem, RSSFeed } from './types';
 
+// HTML에서 이미지 URL 추출하는 함수
+function extractImageFromDescription(description: string): string | undefined {
+  if (!description) return undefined;
+  
+  // img 태그에서 src 추출
+  const imgMatch = description.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/i);
+  if (imgMatch && imgMatch[1]) {
+    return imgMatch[1];
+  }
+  
+  // data-src 속성에서 추출 (lazy loading)
+  const dataSrcMatch = description.match(/<img[^>]+data-src=["']([^"']+)["'][^>]*>/i);
+  if (dataSrcMatch && dataSrcMatch[1]) {
+    return dataSrcMatch[1];
+  }
+  
+  return undefined;
+}
+
 // RSS 피드 목록 (빠른 응답 피드들로 최적화)
 export const RSS_FEEDS: RSSFeed[] = [
   // 빠른 응답 피드들 (우선순위)
@@ -92,7 +111,8 @@ async function fetchViaRSS2JSON(url: string, sourceName: string): Promise<NewsIt
       description: item.description || '',
       link: item.link || '',
       pubDate: item.pubDate || new Date().toISOString(),
-      source: sourceName
+      source: sourceName,
+      imageUrl: item.thumbnail || (item.enclosure as { link?: string })?.link || extractImageFromDescription(item.description as string)
     }));
   } catch (error) {
     console.error(`RSS2JSON 파싱 오류 (${url}):`, error);
@@ -158,7 +178,8 @@ async function fetchViaProxy(url: string, sourceName: string): Promise<NewsItem[
                 description: item.description || '',
                 link: item.link || '',
                 pubDate: item.pubDate || new Date().toISOString(),
-                source: sourceName
+                source: sourceName,
+                imageUrl: extractImageFromDescription(item.description || '')
               })) : [];
               
               resolve(newsItems);
@@ -226,7 +247,8 @@ export async function parseRSSFeed(url: string, sourceName: string): Promise<New
                 description: item.description || '',
                 link: item.link || '',
                 pubDate: item.pubDate || new Date().toISOString(),
-                source: sourceName
+                source: sourceName,
+                imageUrl: extractImageFromDescription(item.description || '')
               })) : [];
               
               resolve(newsItems);

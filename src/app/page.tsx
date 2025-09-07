@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { AnalyzedNews } from '@/lib/types';
-import { formatDate, getScoreColor } from '@/lib/utils';
 import { trackNewsClick, trackCategoryNavigation } from '@/lib/analytics';
 import Head from 'next/head';
 import Link from 'next/link';
+import ImageNewsCard from '@/components/ImageNewsCard';
+import NewsCard from '@/components/NewsCard';
 
 export default function Home() {
   const [news, setNews] = useState<AnalyzedNews[]>([]);
@@ -103,23 +104,6 @@ export default function Home() {
     setIframeLoading(false);
   };
 
-  // HTML을 안전하게 렌더링하는 컴포넌트
-  const SafeHtml = ({ html, className }: { html: string; className?: string }) => {
-    if (!html) return null;
-    
-    return (
-      <div 
-        className={className}
-        dangerouslySetInnerHTML={{ 
-          __html: html
-            .replace(/<script[^>]*>.*?<\/script>/gi, '') // script 태그 제거
-            .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '') // iframe 태그 제거
-            .replace(/javascript:/gi, '') // javascript: 프로토콜 제거
-            .replace(/on\w+\s*=/gi, '') // 이벤트 핸들러 제거
-        }} 
-      />
-    );
-  };
 
   // JSON-LD 구조화된 데이터
   const jsonLd = {
@@ -356,43 +340,33 @@ export default function Home() {
                 
                 {/* 감동 뉴스 카드 그리드 */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {news.slice(0, 16).map((item, index) => (
-                    <article
-                      key={`inspiring-${item.source}-${index}`}
-                      className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer h-full transform hover:-translate-y-2 border border-gray-100"
-                      onClick={() => openPopup(item.link, item.title, item.category, item.isInspiring)}
-                    >
-                      <div className="p-6 h-full flex flex-col">
-                        <div className="flex items-center justify-between mb-4 text-xs text-gray-500 font-normal">
-                          <span className="uppercase tracking-wide">{item.source}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-pink-500 font-bold text-sm">
-                              감동
-                            </span>
-                            <span className={`${getScoreColor(item.score)}`}>
-                              {item.score}점
-                            </span>
-                          </div>
-                        </div>
-                        <SafeHtml 
-                          html={item.title}
-                          className="text-lg font-bold text-gray-900 mb-4 leading-tight line-clamp-3 flex-grow"
+                  {news.slice(0, 16).map((item, index) => {
+                    // 디버깅을 위한 콘솔 로그
+                    console.log(`뉴스 ${index}:`, {
+                      title: item.title,
+                      hasImage: !!item.imageUrl,
+                      imageUrl: item.imageUrl
+                    });
+                    
+                    // 이미지가 있는 뉴스는 이미지 카드, 없는 뉴스는 일반 카드 사용
+                    if (item.imageUrl) {
+                      return (
+                        <ImageNewsCard
+                          key={`inspiring-image-${item.source}-${index}`}
+                          news={item}
+                          onNewsClick={openPopup}
                         />
-                        <SafeHtml 
-                          html={item.description}
-                          className="text-gray-600 text-sm leading-relaxed line-clamp-4 flex-grow"
+                      );
+                    } else {
+                      return (
+                        <NewsCard
+                          key={`inspiring-text-${item.source}-${index}`}
+                          news={item}
+                          onNewsClick={openPopup}
                         />
-                        <div className="mt-auto pt-4 border-t border-gray-100">
-                          <div className="flex items-center justify-between text-xs text-gray-500 font-normal">
-                            <span>{formatDate(item.pubDate)}</span>
-                            <span className="text-blue-600 font-medium">
-                              {item.category}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
+                      );
+                    }
+                  })}
                 </div>
               </div>
             )}

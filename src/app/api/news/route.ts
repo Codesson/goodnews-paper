@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchAllNews } from '@/lib/rss';
 import { analyzeNews } from '@/lib/analyzer';
-import { getAllNews, getInspiringNews, hasTodayNews, saveNews } from '@/lib/database';
+import { getAllNews, getInspiringNews, hasTodayNews, saveNews, migrateTables } from '@/lib/database';
 import { newsCache } from '@/lib/cache';
 import { DUMMY_NEWS } from '@/lib/dummy-data';
 
@@ -41,6 +41,9 @@ export async function GET(request: Request) {
     // 2단계: 데이터베이스에서 조회 (useDatabase가 true인 경우)
     if (useDatabase) {
       try {
+        // 마이그레이션 실행 (image_url 컬럼 추가)
+        await migrateTables();
+        
         console.log('🗄️ 데이터베이스에서 뉴스 조회 중...');
         const dbNews = inspiringOnly 
           ? await getInspiringNews(category === 'all' ? undefined : category, limit)

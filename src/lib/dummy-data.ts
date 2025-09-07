@@ -10,7 +10,8 @@ export const DUMMY_NEWS: AnalyzedNews[] = [
     category: '사회',
     isInspiring: true,
     score: 8,
-    reason: '감동적인 내용'
+    reason: '감동적인 내용',
+    imageUrl: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=200&fit=crop&crop=center'
   },
   {
     title: '두 번째 뉴스 제목',
@@ -21,7 +22,8 @@ export const DUMMY_NEWS: AnalyzedNews[] = [
     category: '인물',
     isInspiring: true,
     score: 7,
-    reason: '감동적인 내용'
+    reason: '감동적인 내용',
+    imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop&crop=center'
   },
   {
     title: '세 번째 뉴스 제목',
@@ -32,7 +34,8 @@ export const DUMMY_NEWS: AnalyzedNews[] = [
     category: '환경',
     isInspiring: true,
     score: 6,
-    reason: '감동적인 내용'
+    reason: '감동적인 내용',
+    imageUrl: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=200&fit=crop&crop=center'
   },
   {
     title: '네 번째 뉴스 제목',
@@ -44,6 +47,7 @@ export const DUMMY_NEWS: AnalyzedNews[] = [
     isInspiring: true,
     score: 9,
     reason: '감동적인 내용'
+    // 이미지 없음 - 일반 카드로 표시
   },
   {
     title: '다섯 번째 뉴스 제목',
@@ -54,6 +58,7 @@ export const DUMMY_NEWS: AnalyzedNews[] = [
     category: '교육',
     isInspiring: true,
     score: 8,
-    reason: '감동적인 내용'
+    reason: '감동적인 내용',
+    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop&crop=center'
   }
 ]; 

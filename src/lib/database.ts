@@ -1,6 +1,20 @@
 import { sql } from '@vercel/postgres';
 // import { NewsItem, AnalyzedNews } from './types';
 
+// 데이터베이스 테이블 마이그레이션 (image_url 컬럼 추가)
+export async function migrateTables() {
+  try {
+    // image_url 컬럼이 없으면 추가
+    await sql`
+      ALTER TABLE news 
+      ADD COLUMN IF NOT EXISTS image_url TEXT
+    `;
+    console.log('데이터베이스 마이그레이션 완료 (image_url 컬럼 추가)');
+  } catch (error) {
+    console.error('데이터베이스 마이그레이션 오류:', error);
+  }
+}
+
 // 데이터베이스 테이블 생성
 export async function createTables() {
   try {
@@ -17,6 +31,7 @@ export async function createTables() {
         is_inspiring BOOLEAN DEFAULT false,
         score INTEGER DEFAULT 0,
         reason TEXT,
+        image_url TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -55,8 +70,8 @@ export async function saveNews(newsItems: Record<string, unknown>[]): Promise<vo
   try {
     for (const news of newsItems) {
       await sql`
-        INSERT INTO news (title, description, link, pub_date, source, category, is_inspiring, score, reason)
-        VALUES (${String(news.title)}, ${String(news.description)}, ${String(news.link)}, ${String(news.pubDate)}, ${String(news.source)}, ${String(news.category)}, ${Boolean(news.isInspiring)}, ${Number(news.score)}, ${String(news.reason)})
+        INSERT INTO news (title, description, link, pub_date, source, category, is_inspiring, score, reason, image_url)
+        VALUES (${String(news.title)}, ${String(news.description)}, ${String(news.link)}, ${String(news.pubDate)}, ${String(news.source)}, ${String(news.category)}, ${Boolean(news.isInspiring)}, ${Number(news.score)}, ${String(news.reason)}, ${String(news.imageUrl || '')})
         ON CONFLICT (link) DO UPDATE SET
           title = EXCLUDED.title,
           description = EXCLUDED.description,
@@ -65,6 +80,7 @@ export async function saveNews(newsItems: Record<string, unknown>[]): Promise<vo
           is_inspiring = EXCLUDED.is_inspiring,
           score = EXCLUDED.score,
           reason = EXCLUDED.reason,
+          image_url = EXCLUDED.image_url,
           updated_at = CURRENT_TIMESTAMP
       `;
     }
@@ -103,7 +119,8 @@ export async function getAllNews(category?: string, limit: number = 20): Promise
       category: row.category,
       isInspiring: row.is_inspiring,
       score: row.score,
-      reason: row.reason
+      reason: row.reason,
+      imageUrl: row.image_url
     }));
   } catch (error) {
     console.error('뉴스 조회 오류:', error);
@@ -141,7 +158,8 @@ export async function getInspiringNews(category?: string, limit: number = 20): P
       category: row.category,
       isInspiring: row.is_inspiring,
       score: row.score,
-      reason: row.reason
+      reason: row.reason,
+      imageUrl: row.image_url
     }));
   } catch (error) {
     console.error('뉴스 조회 오류:', error);

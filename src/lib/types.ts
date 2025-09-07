@@ -5,6 +5,7 @@ export interface NewsItem {
   pubDate: string;
   source: string;
   category?: string;
+  imageUrl?: string;
 }
 
 export interface AnalyzedNews extends NewsItem {
